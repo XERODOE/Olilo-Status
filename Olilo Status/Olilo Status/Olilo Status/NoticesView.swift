@@ -329,7 +329,7 @@ private struct NoticeTitleRow: View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: systemImage)
                 .font(.headline)
-                .foregroundStyle(statusColor(status))
+                .foregroundStyle(Color.oliloPurple)
                 .frame(width: 24)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)

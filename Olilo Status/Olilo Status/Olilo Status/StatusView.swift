@@ -657,7 +657,7 @@ func statusSeveritySort(_ lhs: String, _ rhs: String) -> Bool {
 func statusColor(_ status: String) -> Color {
     switch status.uppercased() {
     case "UP", "OPERATIONAL", "RESOLVED", "COMPLETED":
-        return .green
+        return .oliloPurple
     case "UNDERMAINTENANCE", "MONITORING", "NOTSTARTEDYET":
         return .blue
     case "DEGRADEDPERFORMANCE", "DEGRADED_PERFORMANCE", "IDENTIFIED":
