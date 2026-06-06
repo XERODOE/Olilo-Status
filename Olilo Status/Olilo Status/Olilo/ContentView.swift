@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+extension Color {
+    static let oliloPurple = Color(red: 0.70, green: 0.28, blue: 1.0)
+}
+
 struct ContentView: View {
     var body: some View {
         TabView {
@@ -25,6 +29,7 @@ struct ContentView: View {
                     Label("Settings", systemImage: "gearshape")
                 }
         }
+        .tint(Color.oliloPurple)
         .preferredColorScheme(.dark)
         .background(OliloDarkGradientBackground())
     }

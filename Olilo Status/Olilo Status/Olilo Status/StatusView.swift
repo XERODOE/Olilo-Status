@@ -240,13 +240,14 @@ struct StatusView: View {
                         Task { await model.refresh() }
                     } label: {
                         Image(systemName: "arrow.clockwise")
+                            .foregroundStyle(Color.oliloPurple)
                     }
                     .disabled(model.isLoading)
+                    .tint(Color.oliloPurple)
                     .accessibilityLabel("Refresh status")
                 }
             }
             .task { await model.refresh() }
-            .refreshable { await model.refresh() }
             .background(OliloDarkGradientBackground())
         }
     }
@@ -297,7 +298,6 @@ private struct OverviewCard: View {
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    StatusBadge(text: readableStatus(summary.page.status), status: summary.page.status)
                 }
 
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
@@ -310,7 +310,9 @@ private struct OverviewCard: View {
                 HStack {
                     Link(destination: summary.page.url) {
                         Label("Status page", systemImage: "safari")
+                            .foregroundStyle(Color.oliloPurple)
                     }
+                    .tint(Color.oliloPurple)
                     Spacer()
                     if let lastRefreshed {
                         Text("Updated \(lastRefreshed.formatted(date: .omitted, time: .shortened))")

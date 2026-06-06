@@ -148,13 +148,14 @@ struct NoticesView: View {
                         Task { await model.refresh() }
                     } label: {
                         Image(systemName: "arrow.clockwise")
+                            .foregroundStyle(Color.oliloPurple)
                     }
                     .disabled(model.isLoading)
+                    .tint(Color.oliloPurple)
                     .accessibilityLabel("Refresh notices")
                 }
             }
             .task { await model.refresh() }
-            .refreshable { await model.refresh() }
             .background(OliloDarkGradientBackground())
         }
     }
@@ -189,11 +190,20 @@ private struct NoticesOverviewCard: View {
                     NoticeMetric(title: "History", value: "\(historyCount)", systemImage: "clock.arrow.circlepath")
                 }
 
-                if let lastRefreshed {
-                    Text("Updated \(lastRefreshed.formatted(date: .omitted, time: .shortened))")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                HStack {
+                    Link(destination: URL(string: "https://status.olilo.co.uk")!) {
+                        Label("Status page", systemImage: "safari")
+                            .foregroundStyle(Color.oliloPurple)
+                    }
+                    .tint(Color.oliloPurple)
+                    Spacer()
+                    if let lastRefreshed {
+                        Text("Updated \(lastRefreshed.formatted(date: .omitted, time: .shortened))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                .font(.callout.weight(.medium))
             }
         }
     }
@@ -324,14 +334,18 @@ private struct NoticeHistoryCard: View {
                     } label: {
                         Label("\(notice.updates.count) update\(notice.updates.count == 1 ? "" : "s")", systemImage: "list.bullet.rectangle")
                             .font(.callout.weight(.medium))
+                            .foregroundStyle(Color.oliloPurple)
                     }
+                    .tint(Color.oliloPurple)
                 }
 
                 if let link = notice.link {
                     Link(destination: link) {
                         Label("Open notice", systemImage: "arrow.up.forward.square")
+                            .foregroundStyle(Color.oliloPurple)
                     }
                     .font(.callout.weight(.medium))
+                    .tint(Color.oliloPurple)
                 }
             }
         }
