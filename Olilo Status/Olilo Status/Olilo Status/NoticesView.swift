@@ -101,14 +101,6 @@ struct NoticesView: View {
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 18) {
-                            NoticesOverviewCard(
-                                activeIncidentCount: model.activeIncidents.count,
-                                activeMaintenanceCount: model.activeMaintenances.count,
-                                historyCount: model.notices.count,
-                                lastRefreshed: model.lastRefreshed
-                            )
-                            .padding(.horizontal)
-
                             if !model.activeIncidents.isEmpty || !model.activeMaintenances.isEmpty {
                                 NoticeSectionHeader(title: "Current Notices", count: model.activeIncidents.count + model.activeMaintenances.count)
                                 ForEach(model.activeIncidents) { incident in
@@ -157,54 +149,6 @@ struct NoticesView: View {
             }
             .task { await model.refresh() }
             .background(OliloDarkGradientBackground())
-        }
-    }
-}
-
-private struct NoticesOverviewCard: View {
-    let activeIncidentCount: Int
-    let activeMaintenanceCount: Int
-    let historyCount: Int
-    let lastRefreshed: Date?
-
-    var body: some View {
-        NoticeCard {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack(spacing: 12) {
-                    Image(systemName: "bell.badge.fill")
-                        .font(.system(size: 32, weight: .semibold))
-                        .foregroundStyle(activeIncidentCount + activeMaintenanceCount == 0 ? .green : .orange)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Network Notices")
-                            .font(.title2.weight(.bold))
-                        Text(activeIncidentCount + activeMaintenanceCount == 0 ? "No active notices" : "Active notices need attention")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                }
-
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                    NoticeMetric(title: "Active incidents", value: "\(activeIncidentCount)", systemImage: "exclamationmark.triangle")
-                    NoticeMetric(title: "Active maintenance", value: "\(activeMaintenanceCount)", systemImage: "wrench.and.screwdriver")
-                    NoticeMetric(title: "History", value: "\(historyCount)", systemImage: "clock.arrow.circlepath")
-                }
-
-                HStack {
-                    Link(destination: URL(string: "https://status.olilo.co.uk")!) {
-                        Label("Status page", systemImage: "safari")
-                            .foregroundStyle(Color.oliloPurple)
-                    }
-                    .tint(Color.oliloPurple)
-                    Spacer()
-                    if let lastRefreshed {
-                        Text("Updated \(lastRefreshed.formatted(date: .omitted, time: .shortened))")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .font(.callout.weight(.medium))
-            }
         }
     }
 }
@@ -258,8 +202,7 @@ private struct ActiveIncidentNoticeCard: View {
                     NoticeDetailRow(label: "Updated", value: incident.updatedAt?.formatted(date: .abbreviated, time: .shortened))
                 ])
                 if let description = incident.description, !description.isEmpty {
-                    Text(description)
-                        .font(.subheadline)
+                    ExpandableNoticeDescription(text: description)
                 }
                 if let url = incident.url {
                     Link(destination: url) {
@@ -310,10 +253,7 @@ private struct NoticeHistoryCard: View {
                     NoticeDetailRow(label: "Components", value: notice.affectedComponents)
                 ])
 
-                Text(notice.summary)
-                    .font(.subheadline)
-                    .foregroundStyle(.primary)
-                    .fixedSize(horizontal: false, vertical: true)
+                ExpandableNoticeDescription(text: notice.summary)
 
                 if !notice.updates.isEmpty {
                     DisclosureGroup {
@@ -348,6 +288,33 @@ private struct NoticeHistoryCard: View {
                     .tint(Color.oliloPurple)
                 }
             }
+        }
+    }
+}
+
+private struct ExpandableNoticeDescription: View {
+    let text: String
+    @State private var isExpanded = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(text)
+                .font(.subheadline)
+                .foregroundStyle(.primary)
+                .lineLimit(isExpanded ? nil : 3)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                Label(isExpanded ? "Show less" : "Show more", systemImage: isExpanded ? "chevron.up" : "chevron.down")
+                    .font(.caption.weight(.semibold))
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Color.oliloPurple)
+            .accessibilityLabel(isExpanded ? "Collapse description" : "Expand description")
         }
     }
 }

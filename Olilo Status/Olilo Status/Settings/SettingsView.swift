@@ -47,6 +47,7 @@ struct SettingsView: View {
                 }
             }
         }
+        .tint(Color.oliloPurple)
     }
 }
 
