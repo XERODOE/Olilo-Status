@@ -69,7 +69,7 @@ struct AboutView: View {
 
 struct LegalPageBottomLogo: View {
     var body: some View {
-        Image("OliloLogoLight")
+        Image("Olilo")
             .resizable()
             .scaledToFit()
             .frame(height: 36)

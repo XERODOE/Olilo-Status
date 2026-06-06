@@ -6,11 +6,62 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3647C1582FD4C1280090B9AB /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3647C1572FD4C1280090B9AB /* WidgetKit.framework */; };
+		3647C15A2FD4C1280090B9AB /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3647C1592FD4C1280090B9AB /* SwiftUI.framework */; };
+		3647C1692FD4C1290090B9AB /* Olilo Status WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3647C1552FD4C1280090B9AB /* Olilo Status WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3647C1672FD4C1290090B9AB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 368B8FC62FCA641D00986EE4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3647C1542FD4C1280090B9AB;
+			remoteInfo = "Olilo Status WidgetExtension";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3647C16E2FD4C1290090B9AB /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3647C1692FD4C1290090B9AB /* Olilo Status WidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		3647C1552FD4C1280090B9AB /* Olilo Status WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Olilo Status WidgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3647C1572FD4C1280090B9AB /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		3647C1592FD4C1280090B9AB /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		368B8FCE2FCA641D00986EE4 /* Olilo Status.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Olilo Status.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3647C16A2FD4C1290090B9AB /* Exceptions for "Olilo Status Widget" folder in "Olilo Status WidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 3647C1542FD4C1280090B9AB /* Olilo Status WidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		3647C15B2FD4C1280090B9AB /* Olilo Status Widget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3647C16A2FD4C1290090B9AB /* Exceptions for "Olilo Status Widget" folder in "Olilo Status WidgetExtension" target */,
+			);
+			path = "Olilo Status Widget";
+			sourceTree = "<group>";
+		};
 		368B8FD02FCA641D00986EE4 /* Olilo Status */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "Olilo Status";
@@ -19,6 +70,15 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		3647C1522FD4C1280090B9AB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3647C15A2FD4C1280090B9AB /* SwiftUI.framework in Frameworks */,
+				3647C1582FD4C1280090B9AB /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		368B8FCB2FCA641D00986EE4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -29,10 +89,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3647C1562FD4C1280090B9AB /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3647C1572FD4C1280090B9AB /* WidgetKit.framework */,
+				3647C1592FD4C1280090B9AB /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		368B8FC52FCA641D00986EE4 = {
 			isa = PBXGroup;
 			children = (
 				368B8FD02FCA641D00986EE4 /* Olilo Status */,
+				3647C15B2FD4C1280090B9AB /* Olilo Status Widget */,
+				3647C1562FD4C1280090B9AB /* Frameworks */,
 				368B8FCF2FCA641D00986EE4 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +112,7 @@
 			isa = PBXGroup;
 			children = (
 				368B8FCE2FCA641D00986EE4 /* Olilo Status.app */,
+				3647C1552FD4C1280090B9AB /* Olilo Status WidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,6 +120,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		3647C1542FD4C1280090B9AB /* Olilo Status WidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3647C16B2FD4C1290090B9AB /* Build configuration list for PBXNativeTarget "Olilo Status WidgetExtension" */;
+			buildPhases = (
+				3647C1512FD4C1280090B9AB /* Sources */,
+				3647C1522FD4C1280090B9AB /* Frameworks */,
+				3647C1532FD4C1280090B9AB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3647C15B2FD4C1280090B9AB /* Olilo Status Widget */,
+			);
+			name = "Olilo Status WidgetExtension";
+			packageProductDependencies = (
+			);
+			productName = "Olilo Status WidgetExtension";
+			productReference = 3647C1552FD4C1280090B9AB /* Olilo Status WidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		368B8FCD2FCA641D00986EE4 /* Olilo Status */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 368B8FD92FCA641F00986EE4 /* Build configuration list for PBXNativeTarget "Olilo Status" */;
@@ -55,10 +149,12 @@
 				368B8FCA2FCA641D00986EE4 /* Sources */,
 				368B8FCB2FCA641D00986EE4 /* Frameworks */,
 				368B8FCC2FCA641D00986EE4 /* Resources */,
+				3647C16E2FD4C1290090B9AB /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				3647C1682FD4C1290090B9AB /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				368B8FD02FCA641D00986EE4 /* Olilo Status */,
@@ -80,6 +176,9 @@
 				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2650;
 				TargetAttributes = {
+					3647C1542FD4C1280090B9AB = {
+						CreatedOnToolsVersion = 26.5;
+					};
 					368B8FCD2FCA641D00986EE4 = {
 						CreatedOnToolsVersion = 26.5;
 					};
@@ -100,11 +199,19 @@
 			projectRoot = "";
 			targets = (
 				368B8FCD2FCA641D00986EE4 /* Olilo Status */,
+				3647C1542FD4C1280090B9AB /* Olilo Status WidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		3647C1532FD4C1280090B9AB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		368B8FCC2FCA641D00986EE4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -115,6 +222,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		3647C1512FD4C1280090B9AB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		368B8FCA2FCA641D00986EE4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,7 +238,85 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		3647C1682FD4C1290090B9AB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3647C1542FD4C1280090B9AB /* Olilo Status WidgetExtension */;
+			targetProxy = 3647C1672FD4C1290090B9AB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		3647C16C2FD4C1290090B9AB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 96A9C5CW3N;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Olilo Status Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Olilo Status Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.aarondoe.olilostatus.Olilo-Status-Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		3647C16D2FD4C1290090B9AB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 96A9C5CW3N;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Olilo Status Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Olilo Status Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.aarondoe.olilostatus.Olilo-Status-Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 		368B8FD72FCA641F00986EE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -329,6 +521,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3647C16B2FD4C1290090B9AB /* Build configuration list for PBXNativeTarget "Olilo Status WidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3647C16C2FD4C1290090B9AB /* Debug */,
+				3647C16D2FD4C1290090B9AB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		368B8FC92FCA641D00986EE4 /* Build configuration list for PBXProject "Olilo Status" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

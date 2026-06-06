@@ -101,7 +101,7 @@ private struct SettingsRowLabel: View {
 
 private struct SettingsLogo: View {
     var body: some View {
-        Image("OliloLogoLight")
+        Image("Olilo")
             .resizable()
             .scaledToFit()
             .frame(height: 44)

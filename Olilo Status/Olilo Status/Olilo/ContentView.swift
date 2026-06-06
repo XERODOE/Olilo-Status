@@ -52,7 +52,7 @@ struct OliloDarkGradientBackground: View {
 
 struct OliloToolbarLogo: View {
     var body: some View {
-        Image("OliloLogoLight")
+        Image("Olilo")
             .resizable()
             .scaledToFit()
             .frame(height: 20)
