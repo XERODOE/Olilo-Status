@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct LegalNoticesView: View {
+struct LegalDisclaimerView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -66,7 +66,7 @@ struct LegalNoticesView: View {
             LegalPageBottomLogo()
                 .padding(.bottom, 24)
         }
-        .navigationTitle("Legal Notices")
+        .navigationTitle("Legal Disclaimer")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .toolbar {

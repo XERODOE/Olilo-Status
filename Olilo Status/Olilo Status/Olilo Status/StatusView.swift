@@ -286,7 +286,7 @@ private struct StatusSectionHeader: View {
                 .background(.thinMaterial, in: Capsule())
             Spacer()
             if let dashboardAction {
-                Button("Grafana Dashboard", action: dashboardAction)
+                Button("Dashboard", action: dashboardAction)
                     .font(.caption.weight(.semibold))
                     .buttonStyle(.bordered)
                     .tint(Color.oliloPurple)

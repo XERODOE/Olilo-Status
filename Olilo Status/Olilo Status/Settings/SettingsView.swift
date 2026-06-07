@@ -6,11 +6,25 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section("Social") {
+                    Link(destination: URL(string: "https://gitlab.com/team-olilo/status-app")!) {
+                        SettingsAssetRowLabel(title: "Olilo Status on GitLab", imageName: "GitLab")
+                    }
+
+                    Link(destination: URL(string: "https://discord.gg/olilo")!) {
+                        SettingsAssetRowLabel(title: "Join the Olilo Discord", imageName: "Discord")
+                    }
+
+                    Link(destination: URL(string: "https://www.reddit.com/r/Olilo")!) {
+                        SettingsAssetRowLabel(title: "Join Olilo on Reddit", imageName: "Reddit")
+                    }
+                }
+
                 Section("Information") {
                     NavigationLink {
-                        LegalNoticesView()
+                        LegalDisclaimerView()
                     } label: {
-                        SettingsRowLabel(title: "Legal Notices", systemImage: "doc.text", titleColor: Color.oliloPurple)
+                        SettingsRowLabel(title: "Legal Disclaimer", systemImage: "doc.text", titleColor: Color.oliloPurple)
                     }
 
                     NavigationLink {
@@ -95,6 +109,23 @@ private struct SettingsRowLabel: View {
         } icon: {
             Image(systemName: systemImage)
                 .foregroundStyle(Color.oliloPurple)
+        }
+    }
+}
+
+private struct SettingsAssetRowLabel: View {
+    let title: String
+    let imageName: String
+
+    var body: some View {
+        Label {
+            Text(title)
+                .foregroundStyle(Color.oliloPurple)
+        } icon: {
+            Image(imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20, height: 20)
         }
     }
 }
