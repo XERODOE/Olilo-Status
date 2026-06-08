@@ -54,7 +54,11 @@ private fun URL.readText(): String {
         readTimeout = 15_000
         requestMethod = "GET"
     }
-    return connection.inputStream.bufferedReader().use { it.readText() }
+    return try {
+        connection.inputStream.bufferedReader().use { it.readText() }
+    } finally {
+        connection.disconnect()
+    }
 }
 
 private class AtomNoticeParser {
