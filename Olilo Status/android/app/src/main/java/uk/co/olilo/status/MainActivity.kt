@@ -18,12 +18,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -50,9 +53,7 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -64,7 +65,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -194,43 +194,51 @@ private fun GradientBackground(content: @Composable () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OliloTopBar(
     title: String,
     onRefresh: (() -> Unit)? = null,
     navController: NavHostController? = null,
 ) {
-    CenterAlignedTopAppBar(
-        title = {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.statusBars)
+            .height(48.dp),
+    ) {
+        if (navController != null) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.align(Alignment.CenterStart),
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = OliloPurple,
+                )
+            }
+        }
+        Box(Modifier.align(Alignment.Center)) {
             Image(
                 painter = painterResource(R.drawable.olilo),
                 contentDescription = "Olilo $title",
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.height(24.dp),
             )
-        },
-        navigationIcon = {
-            if (navController != null) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                }
+        }
+        if (onRefresh != null) {
+            IconButton(
+                onClick = onRefresh,
+                modifier = Modifier.align(Alignment.CenterEnd),
+            ) {
+                Icon(
+                    Icons.Filled.Refresh,
+                    contentDescription = "Refresh",
+                    tint = OliloPurple,
+                )
             }
-        },
-        actions = {
-            if (onRefresh != null) {
-                IconButton(onClick = onRefresh) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Refresh")
-                }
-            }
-        },
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = Color.Transparent,
-            titleContentColor = Color.White,
-            navigationIconContentColor = OliloPurple,
-            actionIconContentColor = OliloPurple,
-        ),
-    )
+        }
+    }
 }
 
 @Composable
