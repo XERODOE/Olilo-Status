@@ -1,10 +1,3 @@
-//
-//  LegalNoticesView.swift
-//  Olilo Status
-//
-//  Created by Aaron Doe on 06/06/2026.
-//
-
 import SwiftUI
 
 struct LegalDisclaimerView: View {
@@ -22,12 +15,12 @@ struct LegalDisclaimerView: View {
                         .foregroundStyle(.secondary)
 
                     Text("""
-                    This application is developed by Aaron Doe and it's contents are owned by Olilo UK & Ireland Ltd.
+                    This application is developed by Aaron Doe and its contents are owned by Olilo UK & Ireland Ltd.
                     
                     Aaron Doe (developer) is in no way affiliated with Olilo (company) other than the development of this application.
                     
                     Unauthorized copying, modification, distribution, or reverse engineering
-                    of any part of this application is prohibited except where permitted by law.
+                    of any part of this application is prohibited except where permitted by law and the project's open source license.
                     
                     © 2026 Olilo UK & Ireland Ltd. All rights reserved.
                     

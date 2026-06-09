@@ -1,10 +1,3 @@
-//
-//  Olilo.swift
-//  Olilo Status
-//
-//  Created by Aaron Doe on 30/05/2026.
-//
-
 import SwiftUI
 
 @main
