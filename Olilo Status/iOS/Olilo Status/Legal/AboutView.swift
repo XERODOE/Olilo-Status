@@ -1,10 +1,3 @@
-//
-//  AboutView.swift
-//  Olilo Status
-//
-//  Created by Aaron Doe on 06/06/2026.
-//
-
 import SwiftUI
 
 struct AboutView: View {
@@ -27,7 +20,7 @@ struct AboutView: View {
 
                     Olilo Status is built by Aaron Doe and published by Olilo UK & Ireland Ltd.
                     
-                    This application is Open Source and full source code is available on the Olilo Team GitLab.
+                    This application is open source and full source code is available in the public repository.
                     """)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
