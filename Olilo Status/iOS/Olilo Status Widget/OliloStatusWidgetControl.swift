@@ -1,16 +1,9 @@
-//
-//  Olilo_Status_WidgetControl.swift
-//  Olilo Status Widget
-//
-//  Created by Aaron Doe on 06/06/2026.
-//
-
 import AppIntents
 import SwiftUI
 import WidgetKit
 
 struct OliloStatusWidgetControl: ControlWidget {
-    static let kind: String = "com.aarondoe.olilostatus.Olilo Status Widget"
+    static let kind: String = "com.example.olilostatus.Olilo Status Widget"
 
     var body: some ControlWidgetConfiguration {
         AppIntentControlConfiguration(
