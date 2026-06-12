@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "uk.co.olilo.status"
-        minSdk = 36
+        minSdk = 35
         targetSdk = 37
         versionCode = 1
         versionName = "0.1"
