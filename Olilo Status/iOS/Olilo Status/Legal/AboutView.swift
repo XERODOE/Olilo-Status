@@ -19,8 +19,8 @@ struct AboutView: View {
                     
                     Aaron Doe (The Developer) is in no way affiliated with Olilo (The Company) other than the development and maintenance of this application.
                     
-                    Unauthorized copying, modification, distribution, or reverse engineering
-                    of any part of this application is prohibited except where permitted by law and the project's open source license.
+                    Unauthorised copying, modification, distribution, or reverse engineering
+                    of any part of this application is prohibited except where permitted by law and the project's open source licence.
                     
                     © 2026 Olilo UK & Ireland Ltd. All rights reserved.
                     
