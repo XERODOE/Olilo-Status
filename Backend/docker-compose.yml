@@ -45,9 +45,8 @@ services:
   proxy:
     image: nginx:1.27-alpine
     restart: unless-stopped
-    # Opt-in for production (needs the Cloudflare certs in place). Start with:
-    #   docker compose --profile proxy up -d --build
-    profiles: ['proxy']
+    # Starts by default. Needs the Cloudflare certs in proxy/ and PROXY_DOMAIN
+    # set, or nginx exits on a missing certificate file (see proxy/README.md).
     depends_on:
       - app
     # The domain is injected into the nginx template at start (envsubst). Set

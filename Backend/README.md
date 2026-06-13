@@ -40,13 +40,17 @@ the reverse proxy.
 The stack includes an nginx reverse proxy (served on the domain you set in
 `PROXY_DOMAIN`), fronted by Cloudflare. It terminates TLS with a Cloudflare Origin
 Certificate and uses Authenticated Origin Pulls (mTLS) so the origin only accepts
-Cloudflare traffic. It's an opt-in compose profile:
+Cloudflare traffic. It starts with the stack, so set it up first:
 
 ```sh
 # one-time: set PROXY_DOMAIN in .env and drop the Cloudflare origin cert + pull
 # CA into proxy/ (see proxy/README.md)
-docker compose --profile proxy up -d --build
+docker compose up -d --build
 ```
+
+> The proxy needs the certs in `proxy/` or nginx exits on startup. If you don't
+> want it, remove the `proxy` service from `docker-compose.yml`; the app stays
+> bound to `127.0.0.1:3000`.
 
 Full setup - origin certificate, Authenticated Origin Pulls, DNS, and hardening -
 is in [`proxy/README.md`](proxy/README.md).

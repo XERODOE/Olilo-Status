@@ -74,7 +74,7 @@ firewall the origin to Cloudflare IP ranges as well).
 ### 4. Run
 
 ```sh
-docker compose --profile proxy up -d --build
+docker compose up -d --build
 ```
 
 Check it:
