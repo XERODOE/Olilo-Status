@@ -24,7 +24,8 @@ Olilo Status the open source status app for the Olilo ISP in the UK & Ireland. I
 - Service and component health grouped by status.
 - Active incident and maintenance cards with direct links to status updates.
 - Notice history with filters for incidents and maintenance.
-- iOS home screen widget showing whether the Olilo network is online.
+- Direct contact links for the Olilo Teams official Discord and Reddit channels.
+- iOS & Android home screen widget showing whether the Olilo network is online (choose your network Openreach, CityFibre & Freedom Fibre).
 - Native SwiftUI iOS app and native Kotlin/Jetpack Compose Android app.
 
 ## Repository
@@ -36,6 +37,7 @@ Current app areas include:
 - `iOS/Olilo Status` - SwiftUI iOS app.
 - `iOS/Olilo Status Widget` - WidgetKit extension.
 - `android` - Kotlin/Jetpack Compose Android app.
+- `android/app/src/main/java/uk/co/olilo/status` - WidgetProvider.
 - `App Store` - iOS screenshots and store assets.
 - `Play Store` - Android screenshots and store assets.
 
