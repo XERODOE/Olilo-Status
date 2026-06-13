@@ -152,6 +152,13 @@ running (it reads the same `.env`):
 npm run cli -- <command>      # or: node src/cli.js <command>
 ```
 
+Under Docker, run it inside the `app` container:
+
+```sh
+docker compose exec app node src/cli.js <command>     # stack already up
+docker compose run --rm app node src/cli.js <command> # one-off (starts db too)
+```
+
 | Command | Does |
 | --- | --- |
 | `devices [--all] [--json]` | List registered devices (active only by default). |
