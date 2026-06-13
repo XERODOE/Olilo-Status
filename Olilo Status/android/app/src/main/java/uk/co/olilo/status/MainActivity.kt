@@ -1,14 +1,12 @@
 package uk.co.olilo.status
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.core.net.toUri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -281,25 +279,6 @@ private fun OpenUrlButton(
 }
 
 @Composable
-private fun ExternalUrlButton(
-    label: String,
-    url: String,
-    icon: ImageVector = Icons.AutoMirrored.Filled.OpenInNew,
-) {
-    val context = LocalContext.current
-    AssistChip(
-        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) },
-        label = { Text(label, color = Color.White) },
-        leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
-        colors = AssistChipDefaults.assistChipColors(
-            labelColor = Color.White,
-            leadingIconContentColor = OliloPurple,
-            containerColor = Color(0x332B1C3D),
-        ),
-    )
-}
-
-@Composable
 private fun StatusCard(content: @Composable () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -514,11 +493,23 @@ private fun StatusScreen(navController: NavHostController, viewModel: StatusView
             if (visibleComponentGroups.isEmpty()) {
                 item {
                     SectionHeader("Components", visibleComponentCount) {
-                        ExternalUrlButton(
-                            label = "Open Dashboard",
-                            url = "https://dashboard.as212683.net/d/olilo-traffic-analytics-001/traffic-analytics?orgId=2&from=now-1h&to=now&timezone=browser",
-                            icon = Icons.Filled.Language,
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.horizontalScroll(rememberScrollState()),
+                        ) {
+                            OpenUrlButton(
+                                label = "Open Dashboard",
+                                url = "https://dashboard.as212683.net/d/olilo-traffic-analytics-001/traffic-analytics?orgId=2&from=now-1h&to=now&timezone=browser",
+                                navController = navController,
+                                icon = Icons.Filled.Language,
+                            )
+                            OpenUrlButton(
+                                label = "Open Portal",
+                                url = "https://portal.olilo.co.uk",
+                                navController = navController,
+                                icon = Icons.Filled.Language,
+                            )
+                        }
                     }
                 }
                 item { EmptyComponentsCard() }
@@ -527,11 +518,23 @@ private fun StatusScreen(navController: NavHostController, viewModel: StatusView
                     item(key = "${group.id}-header") {
                         if (group.id == "network") {
                             SectionHeader(group.name, group.allComponents.size) {
-                                ExternalUrlButton(
-                                    label = "Open Dashboard",
-                                    url = "https://dashboard.as212683.net/d/olilo-traffic-analytics-001/traffic-analytics?orgId=2&from=now-1h&to=now&timezone=browser",
-                                    icon = Icons.Filled.Language,
-                                )
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                                ) {
+                                    OpenUrlButton(
+                                        label = "Open Dashboard",
+                                        url = "https://dashboard.as212683.net/d/olilo-traffic-analytics-001/traffic-analytics?orgId=2&from=now-1h&to=now&timezone=browser",
+                                        navController = navController,
+                                        icon = Icons.Filled.Language,
+                                    )
+                                    OpenUrlButton(
+                                        label = "Open Portal",
+                                        url = "https://portal.olilo.co.uk",
+                                        navController = navController,
+                                        icon = Icons.Filled.Language,
+                                    )
+                                }
                             }
                         } else {
                             SectionHeader(group.name, group.allComponents.size)

@@ -261,10 +261,12 @@ final class StatusViewModel: ObservableObject {
 struct StatusView: View {
     @StateObject private var model = StatusViewModel()
     @State private var isDashboardPresented = false
+    @State private var isPortalPresented = false
     @State private var isComponentEditorPresented = false
     @State private var componentDisplayPreferences = StatusComponentDisplayPreferences.load()
 
     private let dashboardURL = URL(string: "https://dashboard.as212683.net/d/olilo-traffic-analytics-001/traffic-analytics?orgId=2&from=now-1h&to=now&timezone=browser")
+    private let portalURL = URL(string: "https://portal.olilo.co.uk")
 
     var body: some View {
         NavigationStack {
@@ -328,7 +330,11 @@ struct StatusView: View {
                             }
 
                             if visibleComponentGroups.isEmpty {
-                                StatusSectionHeader(title: "Components", count: visibleComponentCount) {
+                                StatusSectionHeader(
+                                    title: "Components",
+                                    count: visibleComponentCount,
+                                    portalAction: { isPortalPresented = true }
+                                ) {
                                     isDashboardPresented = true
                                 }
                                 EmptyComponentsCard()
@@ -336,7 +342,11 @@ struct StatusView: View {
                             } else {
                                 ForEach(visibleComponentGroups) { group in
                                     if group.id == StatusComponentCategory.network.id {
-                                        StatusSectionHeader(title: group.name, count: group.allComponents.count) {
+                                        StatusSectionHeader(
+                                            title: group.name,
+                                            count: group.allComponents.count,
+                                            portalAction: { isPortalPresented = true }
+                                        ) {
                                             isDashboardPresented = true
                                         }
                                     } else {
@@ -387,6 +397,11 @@ struct StatusView: View {
             .sheet(isPresented: $isDashboardPresented) {
                 if let dashboardURL {
                     OliloWebViewSheet(title: "Olilo Dashboard", url: dashboardURL)
+                }
+            }
+            .sheet(isPresented: $isPortalPresented) {
+                if let portalURL {
+                    OliloWebViewSheet(title: "Olilo Portal", url: portalURL)
                 }
             }
             .sheet(isPresented: $isComponentEditorPresented) {
@@ -497,11 +512,13 @@ private struct EmptyComponentsCard: View {
 private struct StatusSectionHeader: View {
     let title: String
     let count: Int
+    var portalAction: (() -> Void)?
     var dashboardAction: (() -> Void)?
 
-    init(title: String, count: Int, dashboardAction: (() -> Void)? = nil) {
+    init(title: String, count: Int, portalAction: (() -> Void)? = nil, dashboardAction: (() -> Void)? = nil) {
         self.title = title
         self.count = count
+        self.portalAction = portalAction
         self.dashboardAction = dashboardAction
     }
 
@@ -518,6 +535,12 @@ private struct StatusSectionHeader: View {
             Spacer()
             if let dashboardAction {
                 Button("Open Dashboard", action: dashboardAction)
+                    .font(.caption.weight(.semibold))
+                    .buttonStyle(.bordered)
+                    .tint(Color.oliloPurple)
+            }
+            if let portalAction {
+                Button("Open Portal", action: portalAction)
                     .font(.caption.weight(.semibold))
                     .buttonStyle(.bordered)
                     .tint(Color.oliloPurple)
