@@ -38,8 +38,17 @@ Current app areas include:
 - `iOS/Olilo Status Widget` - WidgetKit extension.
 - `android` - Kotlin/Jetpack Compose Android app.
 - `android/app/src/main/java/uk/co/olilo/status` - WidgetProvider.
+- `Backend` - Node.js push-notification service (APNs + FCM).
 - `App Store` - iOS screenshots and store assets.
 - `Play Store` - Android screenshots and store assets.
+
+## Notifications
+
+Push notifications are delivered by the Node.js service in `Backend`, which polls
+the Olilo status page and pushes incident, maintenance, and component alerts to
+iOS (APNs) and Android (FCM). See [`NOTIFICATIONS.md`](NOTIFICATIONS.md) for a
+developer overview, or `Backend/README.md` and `Backend/CLIENTS.md` for the
+service and client-integration details.
 
 ## iOS Development
 

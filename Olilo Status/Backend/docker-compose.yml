@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: olilo
+      POSTGRES_PASSWORD: olilo
+      POSTGRES_DB: olilo_status
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U olilo']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    env_file: .env
+    environment:
+      # Override the host so the app reaches the compose database, not localhost.
+      DATABASE_URL: postgres://olilo:olilo@db:5432/olilo_status
+    ports:
+      - '3000:3000'
+    depends_on:
+      db:
+        condition: service_healthy
+    # Mount credentials read-only; keep the real files out of the image.
+    volumes:
+      - ./secrets:/app/secrets:ro
+
+volumes:
+  pgdata:

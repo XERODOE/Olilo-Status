@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.local
+*.log
+
+# Push credentials - never commit these
+secrets/
+*.p8
+firebase-service-account*.json
