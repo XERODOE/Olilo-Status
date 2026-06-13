@@ -1,16 +1,15 @@
 package uk.co.olilo.status
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.core.net.toUri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -40,8 +39,8 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -155,7 +154,7 @@ private fun OliloApp() {
                 composable(Route.Notices.path) { NoticesScreen(navController) }
                 composable(Route.Settings.path) { SettingsScreen(navController) }
                 composable("about") { TextPage(navController, "About", aboutText) }
-                composable("legal") { TextPage(navController, "Legal Disclaimer", legalText) }
+                composable("contact") { ContactUsPage(navController) }
                 composable("web/{title}/{url}") { entry ->
                     WebPage(
                         navController = navController,
@@ -226,6 +225,17 @@ private fun OliloTopBar(
                     tint = OliloPurple,
                 )
             }
+        } else if (onConfigure != null) {
+            IconButton(
+                onClick = onConfigure,
+                modifier = Modifier.align(Alignment.CenterStart),
+            ) {
+                Icon(
+                    Icons.Filled.Tune,
+                    contentDescription = "Edit status components",
+                    tint = OliloPurple,
+                )
+            }
         }
         Box(Modifier.align(Alignment.Center)) {
             Image(
@@ -235,25 +245,14 @@ private fun OliloTopBar(
                 modifier = Modifier.height(24.dp),
             )
         }
-        if (onConfigure != null || onRefresh != null) {
+        if (onRefresh != null) {
             Row(modifier = Modifier.align(Alignment.CenterEnd)) {
-                if (onConfigure != null) {
-                    IconButton(onClick = onConfigure) {
-                        Icon(
-                            Icons.Filled.Tune,
-                            contentDescription = "Edit status components",
-                            tint = OliloPurple,
-                        )
-                    }
-                }
-                if (onRefresh != null) {
-                    IconButton(onClick = onRefresh) {
-                        Icon(
-                            Icons.Filled.Refresh,
-                            contentDescription = "Refresh",
-                            tint = OliloPurple,
-                        )
-                    }
+                IconButton(onClick = onRefresh) {
+                    Icon(
+                        Icons.Filled.Refresh,
+                        contentDescription = "Refresh",
+                        tint = OliloPurple,
+                    )
                 }
             }
         }
@@ -269,25 +268,6 @@ private fun OpenUrlButton(
 ) {
     AssistChip(
         onClick = { navController.openWeb(label, url) },
-        label = { Text(label, color = Color.White) },
-        leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
-        colors = AssistChipDefaults.assistChipColors(
-            labelColor = Color.White,
-            leadingIconContentColor = OliloPurple,
-            containerColor = Color(0x332B1C3D),
-        ),
-    )
-}
-
-@Composable
-private fun ExternalUrlButton(
-    label: String,
-    url: String,
-    icon: ImageVector = Icons.AutoMirrored.Filled.OpenInNew,
-) {
-    val context = LocalContext.current
-    AssistChip(
-        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) },
         label = { Text(label, color = Color.White) },
         leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
         colors = AssistChipDefaults.assistChipColors(
@@ -361,44 +341,52 @@ private fun LoadingOrError(
 }
 
 private const val ComponentPreferencesName = "status_component_display_preferences"
-private const val HiddenGroupIdsKey = "hidden_group_ids"
-private const val OrderedGroupIdsKey = "ordered_group_ids"
+private const val HiddenComponentIdsKey = "hidden_component_ids"
+private const val OrderedComponentIdsKey = "ordered_component_ids"
 
 private data class ComponentDisplayPreferences(
-    val hiddenGroupIds: Set<String> = emptySet(),
-    val orderedGroupIds: List<String> = emptyList(),
+    val hiddenComponentIds: Set<String> = emptySet(),
+    val orderedComponentIds: List<String> = emptyList(),
 ) {
-    fun orderedGroups(groups: List<StatusComponentGroup>): List<StatusComponentGroup> {
-        val byId = groups.associateBy { it.id }
-        val ordered = orderedGroupIds.mapNotNull { byId[it] }
+    fun orderedComponents(components: List<StatusComponent>): List<StatusComponent> {
+        val byId = components.associateBy { it.id }
+        val ordered = orderedComponentIds.mapNotNull { byId[it] }
         val orderedIds = ordered.map { it.id }.toSet()
-        return ordered + groups.filterNot { it.id in orderedIds }
+        return ordered + components.filterNot { it.id in orderedIds }
     }
 
     fun visibleGroups(groups: List<StatusComponentGroup>): List<StatusComponentGroup> =
-        orderedGroups(groups).filterNot { it.id in hiddenGroupIds }
+        groups.mapNotNull { group ->
+            val visibleComponents = orderedComponents(group.allComponents).filterNot { it.id in hiddenComponentIds }
+            if (visibleComponents.isEmpty()) {
+                null
+            } else {
+                group.copy(parent = null, children = visibleComponents)
+            }
+        }
 
-    fun isVisible(group: StatusComponentGroup): Boolean = group.id !in hiddenGroupIds
+    fun isVisible(component: StatusComponent): Boolean = component.id !in hiddenComponentIds
 
-    fun withVisibility(group: StatusComponentGroup, isVisible: Boolean): ComponentDisplayPreferences =
-        copy(hiddenGroupIds = if (isVisible) hiddenGroupIds - group.id else hiddenGroupIds + group.id)
+    fun withVisibility(component: StatusComponent, isVisible: Boolean): ComponentDisplayPreferences =
+        copy(hiddenComponentIds = if (isVisible) hiddenComponentIds - component.id else hiddenComponentIds + component.id)
 
-    fun moved(fromIndex: Int, toIndex: Int, groups: List<StatusComponentGroup>): ComponentDisplayPreferences {
-        val ids = orderedGroups(groups).map { it.id }.toMutableList()
+    fun moved(fromIndex: Int, toIndex: Int, group: StatusComponentGroup): ComponentDisplayPreferences {
+        val groupComponentIds = group.allComponents.map { it.id }.toSet()
+        val ids = orderedComponents(group.allComponents).map { it.id }.toMutableList()
         if (fromIndex !in ids.indices || toIndex !in ids.indices) return this
         val moved = ids.removeAt(fromIndex)
         ids.add(toIndex, moved)
-        return copy(orderedGroupIds = ids)
+        return copy(orderedComponentIds = orderedComponentIds.filterNot { it in groupComponentIds } + ids)
     }
 
-    fun withAllShown(): ComponentDisplayPreferences = copy(hiddenGroupIds = emptySet())
+    fun withAllShown(): ComponentDisplayPreferences = copy(hiddenComponentIds = emptySet())
 }
 
 private fun loadComponentDisplayPreferences(context: Context): ComponentDisplayPreferences {
     val sharedPreferences = context.getSharedPreferences(ComponentPreferencesName, Context.MODE_PRIVATE)
     return ComponentDisplayPreferences(
-        hiddenGroupIds = sharedPreferences.getStringSet(HiddenGroupIdsKey, mutableSetOf()).orEmpty().toSet(),
-        orderedGroupIds = sharedPreferences.getString(OrderedGroupIdsKey, null)
+        hiddenComponentIds = sharedPreferences.getStringSet(HiddenComponentIdsKey, mutableSetOf()).orEmpty().toSet(),
+        orderedComponentIds = sharedPreferences.getString(OrderedComponentIdsKey, null)
             ?.split('|')
             ?.filter { it.isNotBlank() }
             .orEmpty(),
@@ -408,8 +396,8 @@ private fun loadComponentDisplayPreferences(context: Context): ComponentDisplayP
 private fun saveComponentDisplayPreferences(context: Context, preferences: ComponentDisplayPreferences) {
     context.getSharedPreferences(ComponentPreferencesName, Context.MODE_PRIVATE)
         .edit()
-        .putStringSet(HiddenGroupIdsKey, preferences.hiddenGroupIds.toMutableSet())
-        .putString(OrderedGroupIdsKey, preferences.orderedGroupIds.joinToString("|"))
+        .putStringSet(HiddenComponentIdsKey, preferences.hiddenComponentIds.toMutableSet())
+        .putString(OrderedComponentIdsKey, preferences.orderedComponentIds.joinToString("|"))
         .apply()
 }
 
@@ -419,8 +407,7 @@ private fun visibleAffectedComponents(
 ): List<StatusComponent> = components
     .filter { statusSeverity(it.status) > 0 }
     .filter { component ->
-        val groupId = component.group?.id ?: component.id
-        groupId !in preferences.hiddenGroupIds
+        component.id !in preferences.hiddenComponentIds
     }
     .sortedByDescending { statusSeverity(it.status) }
 
@@ -503,20 +490,59 @@ private fun StatusScreen(navController: NavHostController, viewModel: StatusView
                 items(state.maintenances, key = { it.id }) { maintenance -> MaintenanceCard(maintenance, navController) }
             }
 
-            item {
-                SectionHeader("Components", visibleComponentCount) {
-                    ExternalUrlButton(
-                        label = "Dashboard",
-                        url = "https://dashboard.as212683.net/d/olilo-traffic-analytics-001/traffic-analytics?orgId=2&from=now-1h&to=now&timezone=browser",
-                        icon = Icons.Filled.Language,
-                    )
-                }
-            }
             if (visibleComponentGroups.isEmpty()) {
+                item {
+                    SectionHeader("Components", visibleComponentCount) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.horizontalScroll(rememberScrollState()),
+                        ) {
+                            OpenUrlButton(
+                                label = "Open Dashboard",
+                                url = "https://dashboard.as212683.net/d/olilo-traffic-analytics-001/traffic-analytics?orgId=2&from=now-1h&to=now&timezone=browser",
+                                navController = navController,
+                                icon = Icons.Filled.Language,
+                            )
+                            OpenUrlButton(
+                                label = "Open Portal",
+                                url = "https://portal.olilo.co.uk",
+                                navController = navController,
+                                icon = Icons.Filled.Language,
+                            )
+                        }
+                    }
+                }
                 item { EmptyComponentsCard() }
             } else {
-                items(visibleComponentGroups, key = { it.id }) { group ->
-                    ComponentGroupCard(group)
+                visibleComponentGroups.forEach { group ->
+                    item(key = "${group.id}-header") {
+                        if (group.id == "network") {
+                            SectionHeader(group.name, group.allComponents.size) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                                ) {
+                                    OpenUrlButton(
+                                        label = "Open Dashboard",
+                                        url = "https://dashboard.as212683.net/d/olilo-traffic-analytics-001/traffic-analytics?orgId=2&from=now-1h&to=now&timezone=browser",
+                                        navController = navController,
+                                        icon = Icons.Filled.Language,
+                                    )
+                                    OpenUrlButton(
+                                        label = "Open Portal",
+                                        url = "https://portal.olilo.co.uk",
+                                        navController = navController,
+                                        icon = Icons.Filled.Language,
+                                    )
+                                }
+                            }
+                        } else {
+                            SectionHeader(group.name, group.allComponents.size)
+                        }
+                    }
+                    item(key = group.id) {
+                        ComponentCategoryCard(group.allComponents)
+                    }
                 }
             }
         }
@@ -530,8 +556,6 @@ private fun ComponentDisplayEditorDialog(
     onPreferencesChange: (ComponentDisplayPreferences) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val orderedGroups = preferences.orderedGroups(groups)
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Components") },
@@ -545,18 +569,26 @@ private fun ComponentDisplayEditorDialog(
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFFCEC1D8),
                 )
-                orderedGroups.forEachIndexed { index, group ->
-                    ComponentDisplayEditorRow(
-                        group = group,
-                        isVisible = preferences.isVisible(group),
-                        canMoveUp = index > 0,
-                        canMoveDown = index < orderedGroups.lastIndex,
-                        onVisibilityChange = { isVisible ->
-                            onPreferencesChange(preferences.withVisibility(group, isVisible))
-                        },
-                        onMoveUp = { onPreferencesChange(preferences.moved(index, index - 1, groups)) },
-                        onMoveDown = { onPreferencesChange(preferences.moved(index, index + 1, groups)) },
+                groups.forEach { group ->
+                    Text(
+                        group.name,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color(0xFFCEC1D8),
                     )
+                    val orderedComponents = preferences.orderedComponents(group.allComponents)
+                    orderedComponents.forEachIndexed { index, component ->
+                        ComponentDisplayEditorRow(
+                            component = component,
+                            isVisible = preferences.isVisible(component),
+                            canMoveUp = index > 0,
+                            canMoveDown = index < orderedComponents.lastIndex,
+                            onVisibilityChange = { isVisible ->
+                                onPreferencesChange(preferences.withVisibility(component, isVisible))
+                            },
+                            onMoveUp = { onPreferencesChange(preferences.moved(index, index - 1, group)) },
+                            onMoveDown = { onPreferencesChange(preferences.moved(index, index + 1, group)) },
+                        )
+                    }
                 }
             }
         },
@@ -566,7 +598,7 @@ private fun ComponentDisplayEditorDialog(
         dismissButton = {
             TextButton(
                 onClick = { onPreferencesChange(preferences.withAllShown()) },
-                enabled = preferences.hiddenGroupIds.isNotEmpty(),
+                enabled = preferences.hiddenComponentIds.isNotEmpty(),
             ) {
                 Text("Show All")
             }
@@ -579,7 +611,7 @@ private fun ComponentDisplayEditorDialog(
 
 @Composable
 private fun ComponentDisplayEditorRow(
-    group: StatusComponentGroup,
+    component: StatusComponent,
     isVisible: Boolean,
     canMoveUp: Boolean,
     canMoveDown: Boolean,
@@ -589,11 +621,13 @@ private fun ComponentDisplayEditorRow(
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.weight(1f)) {
-            Text(group.name, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(component.name, color = Color.White, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
-                "${group.allComponents.size} service${if (group.allComponents.size == 1) "" else "s"}",
+                componentEditorDetail(component),
                 style = MaterialTheme.typography.labelMedium,
                 color = Color(0xFFCEC1D8),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
         }
         IconButton(onClick = onMoveUp, enabled = canMoveUp) {
@@ -606,6 +640,12 @@ private fun ComponentDisplayEditorRow(
     }
 }
 
+private fun componentEditorDetail(component: StatusComponent): String = buildList {
+    add(readableStatus(component.status))
+    component.group?.name?.takeIf { it.isNotBlank() }?.let(::add)
+    component.description?.takeIf { it.isNotBlank() }?.let(::add)
+}.joinToString(" - ")
+
 @Composable
 private fun EmptyComponentsCard() {
     StatusCard {
@@ -613,6 +653,17 @@ private fun EmptyComponentsCard() {
             Icon(Icons.Filled.VisibilityOff, contentDescription = null, tint = OliloPurple)
             Text("No components shown", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Text("Use the component editor to show services on this page.", color = Color(0xFFCEC1D8))
+        }
+    }
+}
+
+@Composable
+private fun ComponentCategoryCard(components: List<StatusComponent>) {
+    StatusCard {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            components.forEach { component ->
+                ComponentRow(component, showGroup = false)
+            }
         }
     }
 }
@@ -752,7 +803,7 @@ private fun ComponentGroupHeader(
         StatusDot(group.worstStatus, 10)
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
-            Text(group.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(group.name, color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Text(readableStatus(group.worstStatus), style = MaterialTheme.typography.labelMedium, color = Color(0xFFCEC1D8))
         }
         StatusBadge(readableStatus(group.worstStatus), group.worstStatus)
@@ -783,7 +834,7 @@ private fun ComponentRow(component: StatusComponent, showGroup: Boolean) {
         StatusDot(component.status, 8)
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
-            Text(component.name, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(component.name, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             val detail = buildList {
                 add(readableStatus(component.status))
                 if (showGroup) component.group?.name?.let(::add)
@@ -1046,6 +1097,8 @@ private fun DetailRows(rows: List<Pair<String, String?>>) {
 
 @Composable
 private fun SettingsScreen(navController: NavHostController) {
+    val context = LocalContext.current
+
     Column(Modifier.fillMaxSize()) {
         OliloTopBar(title = "Settings")
         LazyColumn(
@@ -1053,23 +1106,43 @@ private fun SettingsScreen(navController: NavHostController) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
-                SettingsSection("Social") {
-                    SettingsLinkRow("Olilo Status on GitLab", "https://gitlab.com/team-olilo/status-app", Icons.Filled.Language, navController)
-                    SettingsLinkRow("Join the Olilo Discord", "https://discord.gg/olilo", Icons.Filled.Language, navController)
-                    SettingsLinkRow("Join Olilo on Reddit", "https://www.reddit.com/r/Olilo", Icons.Filled.Language, navController)
+                SettingsSection("Need Help?") {
+                    SettingsNavRow("Contact Us", Icons.Filled.Email, showDivider = false) { navController.navigate("contact") }
                 }
             }
             item {
-                SettingsSection("Information") {
-                    SettingsNavRow("Legal Disclaimer", Icons.Filled.Gavel) { navController.navigate("legal") }
+                SettingsSection("Legal Information") {
                     SettingsNavRow("About", Icons.Filled.Info) { navController.navigate("about") }
                     SettingsLinkRow("Privacy Policy", "https://olilo.co.uk/privacy", Icons.Filled.Description, navController)
                     SettingsLinkRow("Terms & Conditions", "https://olilo.co.uk/terms", Icons.Filled.Description, navController)
                 }
             }
             item {
-                StatusCard {
+                SettingsSection("Olilo Status") {
+                    SettingsLinkRow(
+                        title = "Contribute to Olilo Status on GitLab",
+                        url = "https://gitlab.com/team-olilo/status-app",
+                        icon = Icons.Filled.Language,
+                        navController = navController,
+                        logoResId = R.drawable.logo_gitlab,
+                        showDivider = false,
+                    )
+                    Text(
+                        appVersion(context),
+                        color = Color(0xFFCEC1D8),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .border(
+                                width = 1.dp,
+                                color = Color(0x59CEC1D8),
+                                shape = RoundedCornerShape(8.dp),
+                            )
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                        Spacer(Modifier.height(8.dp))
                         Image(
                             painter = painterResource(R.drawable.olilo),
                             contentDescription = "Olilo",
@@ -1089,6 +1162,11 @@ private fun SettingsScreen(navController: NavHostController) {
     }
 }
 
+private fun appVersion(context: Context): String {
+    val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+    return packageInfo.versionName.orEmpty().ifBlank { "Unknown" }
+}
+
 @Composable
 private fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1100,22 +1178,49 @@ private fun SettingsSection(title: String, content: @Composable ColumnScope.() -
 }
 
 @Composable
-private fun SettingsLinkRow(title: String, url: String, icon: ImageVector, navController: NavHostController) {
-    SettingsRow(title, icon) {
-        navController.openWeb(title, url)
-    }
+private fun SettingsLinkRow(
+    title: String,
+    url: String,
+    icon: ImageVector,
+    navController: NavHostController,
+    logoResId: Int? = null,
+    showDivider: Boolean = true,
+) {
+    SettingsRow(
+        title = title,
+        icon = icon,
+        onClick = { navController.openWeb(title, url) },
+        logoResId = logoResId,
+        showDivider = showDivider,
+    )
 }
 
 @Composable
-private fun SettingsNavRow(title: String, icon: ImageVector, onClick: () -> Unit) {
-    SettingsRow(title, icon, onClick)
+private fun SettingsNavRow(title: String, icon: ImageVector, showDivider: Boolean = true, onClick: () -> Unit) {
+    SettingsRow(title, icon, onClick, showDivider = showDivider)
 }
 
 @Composable
-private fun SettingsRow(title: String, icon: ImageVector, onClick: () -> Unit) {
+private fun SettingsRow(
+    title: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    logoResId: Int? = null,
+    showDivider: Boolean = true,
+) {
     androidx.compose.material3.ListItem(
-        headlineContent = { Text(title, color = OliloPurple) },
-        leadingContent = { Icon(icon, contentDescription = null, tint = OliloPurple) },
+        headlineContent = { Text(title, color = Color.White) },
+        leadingContent = {
+            if (logoResId != null) {
+                Image(
+                    painter = painterResource(logoResId),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
+            } else {
+                Icon(icon, contentDescription = null, tint = OliloPurple)
+            }
+        },
         colors = ListItemDefaults.colors(
             containerColor = Color.Transparent,
             headlineColor = Color.White,
@@ -1126,12 +1231,14 @@ private fun SettingsRow(title: String, icon: ImageVector, onClick: () -> Unit) {
             .background(Color.Transparent)
             .clickable(onClick = onClick),
     )
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(Color.White.copy(alpha = 0.06f)),
-    )
+    if (showDivider) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color.White.copy(alpha = 0.06f)),
+        )
+    }
 }
 
 @Composable
@@ -1154,6 +1261,55 @@ private fun WebPage(navController: NavHostController, title: String, url: String
 }
 
 @Composable
+private fun ContactUsPage(navController: NavHostController) {
+    Column(Modifier.fillMaxSize()) {
+        OliloTopBar(title = "Contact Us", navController = navController)
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text("Need to contact the team?", style = MaterialTheme.typography.titleMedium, color = Color(0xFFCEC1D8))
+            StatusCard {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    SettingsLinkRow(
+                        "Olilo Discord",
+                        "https://discord.gg/olilo",
+                        Icons.Filled.Language,
+                        navController,
+                        R.drawable.logo_discord,
+                    )
+                    SettingsLinkRow(
+                        "r/Olilo Reddit",
+                        "https://www.reddit.com/r/Olilo",
+                        Icons.Filled.Language,
+                        navController,
+                        R.drawable.logo_reddit,
+                        showDivider = false,
+                    )
+                }
+            }
+            Text(
+                "Support links open to external services. Official Olilo staff can be identified either by the \"Olilo Management\" & \"Olilo Staff\" flairs on Reddit or \"Management\" & \"Staff\" roles on Discord.",
+                color = Color(0xFFCEC1D8),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(Modifier.height(44.dp))
+            Image(
+                painter = painterResource(R.drawable.olilo),
+                contentDescription = "Olilo",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .height(36.dp)
+                    .align(Alignment.CenterHorizontally),
+            )
+        }
+    }
+}
+
+@Composable
 private fun TextPage(navController: NavHostController, title: String, body: String) {
     Column(Modifier.fillMaxSize()) {
         OliloTopBar(title = title, navController = navController)
@@ -1164,7 +1320,7 @@ private fun TextPage(navController: NavHostController, title: String, body: Stri
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text("Olilo Status", style = MaterialTheme.typography.titleMedium, color = Color(0xFFCEC1D8))
+            Text("About this application:", style = MaterialTheme.typography.titleMedium, color = Color(0xFFCEC1D8))
             StatusCard {
                 Text(body)
             }
@@ -1181,21 +1337,14 @@ private fun TextPage(navController: NavHostController, title: String, body: Stri
     }
 }
 
-private const val aboutText = """Olilo Status is built for fast and simple access for checking the current status of the Olilo Network,
-Services, Planned Maintenance & Updates.
+private const val aboutText = """This application is developed by Aaron Doe and contents herein are owned by Olilo UK & Ireland Ltd.
 
-Olilo Status is built by Aaron Doe and published by Olilo UK & Ireland Ltd.
+Aaron Doe (The Developer) is in no way affiliated with Olilo (The Company) other than the development and maintenance of this application.
 
-This application is Open Source and full source code is available on the Olilo Team GitLab."""
-
-private const val legalText = """This application is developed by Aaron Doe and it's contents are owned by Olilo UK & Ireland Ltd.
-
-Aaron Doe (developer) is in no way affiliated with Olilo (company) other than the development of this application.
-
-Unauthorized copying, modification, distribution, or reverse engineering of any part of this application is prohibited except where permitted by law.
+Unauthorized copying, modification, distribution, or reverse engineering of any part of this application is prohibited except where permitted by law and the project's open source license.
 
 (c) 2026 Olilo UK & Ireland Ltd. All rights reserved.
 
 Company Number: 16352417 (Olilo UK & Ireland Ltd.)
 
-For legal enquiries, please contact Olilo directly."""
+For legal enquiries, please contact us."""

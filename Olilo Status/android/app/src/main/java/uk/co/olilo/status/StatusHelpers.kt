@@ -63,35 +63,52 @@ fun formatTime(millis: Long?): String? {
 }
 
 fun groupedComponents(components: List<StatusComponent>): List<StatusComponentGroup> {
-    val parents = components.filter { it.group == null }
-    val children = components.filter { it.group != null }
-    val childrenByGroup = children.groupBy { it.group!!.id }
-    val seen = mutableSetOf<String>()
+    return componentCategories.mapNotNull { category ->
+        val includedIds = mutableSetOf<String>()
+        val children = category.componentNames.flatMap { componentName ->
+            val parent = components.firstOrNull { it.name.equals(componentName, ignoreCase = true) }
+                ?: return@flatMap emptyList()
+            listOf(parent) + components
+                .filter { child ->
+                    child.group?.id == parent.id || child.group?.name.equals(parent.name, ignoreCase = true)
+                }
+                .sortedBy { it.name }
+        }.filter { includedIds.add(it.id) }
 
-    val groups = parents.map { parent ->
-        seen += parent.id
-        StatusComponentGroup(
-            id = parent.id,
-            name = parent.name,
-            description = parent.description,
-            parent = parent,
-            children = childrenByGroup[parent.id].orEmpty().sortedBy { it.name },
-        )
-    }.toMutableList()
-
-    childrenByGroup.keys.filterNot { it in seen }.forEach { id ->
-        val group = childrenByGroup[id]?.firstOrNull()?.group ?: return@forEach
-        groups += StatusComponentGroup(
-            id = group.id,
-            name = group.name,
-            description = group.description,
-            parent = null,
-            children = childrenByGroup[id].orEmpty().sortedBy { it.name },
-        )
+        if (children.isEmpty()) {
+            null
+        } else {
+            StatusComponentGroup(
+                id = category.id,
+                name = category.title,
+                description = null,
+                parent = null,
+                children = children,
+            )
+        }
     }
-
-    return groups.sortedWith(
-        compareByDescending<StatusComponentGroup> { statusSeverity(it.worstStatus) }
-            .thenBy { it.name },
-    )
 }
+
+private data class ComponentCategory(
+    val id: String,
+    val title: String,
+    val componentNames: List<String>,
+)
+
+private val componentCategories = listOf(
+    ComponentCategory(
+        id = "network",
+        title = "Network",
+        componentNames = listOf("Openreach", "Freedom Fibre", "CityFibre", "MS3", "Telehouse North"),
+    ),
+    ComponentCategory(
+        id = "website",
+        title = "Website",
+        componentNames = listOf("Prosumer Website", "Consumer Website", "Terminal", "API"),
+    ),
+    ComponentCategory(
+        id = "connections",
+        title = "Connections",
+        componentNames = listOf("3rd Party"),
+    ),
+)
