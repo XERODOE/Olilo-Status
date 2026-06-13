@@ -3,34 +3,26 @@ import SwiftUI
 struct SettingsView: View {
     @State private var presentedWebPage: SettingsWebPage?
 
+    private var appVersion: String {
+        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "Unknown"
+    }
+
     var body: some View {
         NavigationStack {
             Form {
-                Section("Social") {
-                    Link(destination: URL(string: "https://gitlab.com/team-olilo/status-app")!) {
-                        SettingsAssetRowLabel(title: "Olilo Status on GitLab", imageName: "GitLab")
-                    }
-
-                    Link(destination: URL(string: "https://discord.gg/olilo")!) {
-                        SettingsAssetRowLabel(title: "Join the Olilo Discord", imageName: "Discord")
-                    }
-
-                    Link(destination: URL(string: "https://www.reddit.com/r/Olilo")!) {
-                        SettingsAssetRowLabel(title: "Join Olilo on Reddit", imageName: "Reddit")
+                Section("Need Help?") {
+                    NavigationLink {
+                        ContactUsView()
+                    } label: {
+                        SettingsRowLabel(title: "Contact Us", systemImage: "envelope")
                     }
                 }
 
-                Section("Information") {
-                    NavigationLink {
-                        LegalDisclaimerView()
-                    } label: {
-                        SettingsRowLabel(title: "Legal Disclaimer", systemImage: "doc.text", titleColor: Color.oliloPurple)
-                    }
-
+                Section("Legal Information") {
                     NavigationLink {
                         AboutView()
                     } label: {
-                        SettingsRowLabel(title: "About", systemImage: "info.circle", titleColor: Color.oliloPurple)
+                        SettingsRowLabel(title: "About", systemImage: "info.circle")
                     }
 
                     Button {
@@ -49,6 +41,23 @@ struct SettingsView: View {
                 }
 
                 Section("Olilo Status") {
+                    Link(destination: URL(string: "https://gitlab.com/team-olilo/status-app")!) {
+                        SettingsAssetRowLabel(title: "Contribute to Olilo Status on GitLab", imageName: "GitLab")
+                    }
+                    .listRowSeparator(.hidden)
+
+                    Text(appVersion)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.secondary.opacity(0.35), lineWidth: 1)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .listRowSeparator(.hidden)
+
                     VStack(spacing: 10) {
                         SettingsLogo()
 
@@ -58,6 +67,7 @@ struct SettingsView: View {
                             .multilineTextAlignment(.center)
                     }
                     .frame(maxWidth: .infinity)
+                    .listRowSeparator(.hidden)
                 }
             }
             .scrollContentBackground(.hidden)
@@ -100,12 +110,10 @@ private enum SettingsWebPage: Identifiable {
 private struct SettingsRowLabel: View {
     let title: String
     let systemImage: String
-    var titleColor: Color = Color.oliloPurple
-
     var body: some View {
         Label {
             Text(title)
-                .foregroundStyle(titleColor)
+                .foregroundStyle(.white)
         } icon: {
             Image(systemName: systemImage)
                 .foregroundStyle(Color.oliloPurple)
@@ -120,7 +128,7 @@ private struct SettingsAssetRowLabel: View {
     var body: some View {
         Label {
             Text(title)
-                .foregroundStyle(Color.oliloPurple)
+                .foregroundStyle(.white)
         } icon: {
             Image(imageName)
                 .resizable()
