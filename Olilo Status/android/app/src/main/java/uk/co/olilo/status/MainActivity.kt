@@ -1272,14 +1272,14 @@ private fun ContactUsPage(navController: NavHostController) {
             StatusCard {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     SettingsLinkRow(
-                        "Submit a support ticket on Discord",
+                        "Olilo Discord",
                         "https://discord.gg/olilo",
                         Icons.Filled.Language,
                         navController,
                         R.drawable.logo_discord,
                     )
                     SettingsLinkRow(
-                        "Post to the community on Reddit",
+                        "r/Olilo Reddit",
                         "https://www.reddit.com/r/Olilo",
                         Icons.Filled.Language,
                         navController,

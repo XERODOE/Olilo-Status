@@ -8,11 +8,11 @@ struct ContactUsView: View {
             Form {
                 Section {
                     Link(destination: URL(string: "https://discord.gg/olilo")!) {
-                        ContactAssetRowLabel(title: "Submit a support ticket on Discord", imageName: "Discord")
+                        ContactAssetRowLabel(title: "Olilo Discord", imageName: "Discord")
                     }
 
                     Link(destination: URL(string: "https://www.reddit.com/r/Olilo")!) {
-                        ContactAssetRowLabel(title: "Post to the community on Reddit", imageName: "Reddit")
+                        ContactAssetRowLabel(title: "r/Olilo Reddit", imageName: "Reddit")
                     }
                 } header: {
                     Text("Need to contact the team?")
