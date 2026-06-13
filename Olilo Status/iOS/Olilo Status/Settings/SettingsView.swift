@@ -11,12 +11,10 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section("Need Help?") {
-                    Link(destination: URL(string: "https://discord.gg/olilo")!) {
-                        SettingsAssetRowLabel(title: "Find us on Discord", imageName: "Discord")
-                    }
-
-                    Link(destination: URL(string: "https://www.reddit.com/r/Olilo")!) {
-                        SettingsAssetRowLabel(title: "Find us on Reddit", imageName: "Reddit")
+                    NavigationLink {
+                        ContactUsView()
+                    } label: {
+                        SettingsRowLabel(title: "Contact Us", systemImage: "envelope")
                     }
                 }
 
@@ -24,13 +22,7 @@ struct SettingsView: View {
                     NavigationLink {
                         AboutView()
                     } label: {
-                        SettingsRowLabel(title: "About", systemImage: "info.circle", titleColor: Color.oliloPurple)
-                    }
-
-                    NavigationLink {
-                        LegalDisclaimerView()
-                    } label: {
-                        SettingsRowLabel(title: "Legal Disclaimer", systemImage: "doc.text", titleColor: Color.oliloPurple)
+                        SettingsRowLabel(title: "About", systemImage: "info.circle")
                     }
 
                     Button {
@@ -48,7 +40,7 @@ struct SettingsView: View {
                     .buttonStyle(.plain)
                 }
 
-                Section("About Olilo Status") {
+                Section("Olilo Status") {
                     Link(destination: URL(string: "https://gitlab.com/team-olilo/status-app")!) {
                         SettingsAssetRowLabel(title: "Contribute to Olilo Status on GitLab", imageName: "GitLab")
                     }
@@ -118,12 +110,10 @@ private enum SettingsWebPage: Identifiable {
 private struct SettingsRowLabel: View {
     let title: String
     let systemImage: String
-    var titleColor: Color = Color.oliloPurple
-
     var body: some View {
         Label {
             Text(title)
-                .foregroundStyle(titleColor)
+                .foregroundStyle(.white)
         } icon: {
             Image(systemName: systemImage)
                 .foregroundStyle(Color.oliloPurple)
@@ -138,7 +128,7 @@ private struct SettingsAssetRowLabel: View {
     var body: some View {
         Label {
             Text(title)
-                .foregroundStyle(Color.oliloPurple)
+                .foregroundStyle(.white)
         } icon: {
             Image(imageName)
                 .resizable()

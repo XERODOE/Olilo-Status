@@ -10,17 +10,23 @@ struct AboutView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Olilo Status")
+                    Text("About this application:")
                         .font(.headline)
                         .foregroundStyle(.secondary)
 
                     Text("""
-                    Olilo Status is built for fast and simple access for checking the current status of the Olilo Network,
-                    Services, Planned Maintenance & Updates.
-
-                    Olilo Status is built by Aaron Doe and published by Olilo UK & Ireland Ltd.
+                    This application is developed by Aaron Doe and contents herein are owned by Olilo UK & Ireland Ltd.
                     
-                    This application is open source and full source code is available in the public repository.
+                    Aaron Doe (The Developer) is in no way affiliated with Olilo (The Company) other than the development and maintenance of this application.
+                    
+                    Unauthorized copying, modification, distribution, or reverse engineering
+                    of any part of this application is prohibited except where permitted by law and the project's open source license.
+                    
+                    © 2026 Olilo UK & Ireland Ltd. All rights reserved.
+                    
+                    Company Number: 16352417 (Olilo UK & Ireland Ltd.)
+
+                    For legal enquiries, please contact us.
                     """)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)

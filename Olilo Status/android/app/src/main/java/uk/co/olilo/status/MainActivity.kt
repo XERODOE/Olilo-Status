@@ -41,8 +41,8 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -156,7 +156,7 @@ private fun OliloApp() {
                 composable(Route.Notices.path) { NoticesScreen(navController) }
                 composable(Route.Settings.path) { SettingsScreen(navController) }
                 composable("about") { TextPage(navController, "About", aboutText) }
-                composable("legal") { TextPage(navController, "Legal Disclaimer", legalText) }
+                composable("contact") { ContactUsPage(navController) }
                 composable("web/{title}/{url}") { entry ->
                     WebPage(
                         navController = navController,
@@ -515,7 +515,7 @@ private fun StatusScreen(navController: NavHostController, viewModel: StatusView
                 item {
                     SectionHeader("Components", visibleComponentCount) {
                         ExternalUrlButton(
-                            label = "Dashboard",
+                            label = "Open Dashboard",
                             url = "https://dashboard.as212683.net/d/olilo-traffic-analytics-001/traffic-analytics?orgId=2&from=now-1h&to=now&timezone=browser",
                             icon = Icons.Filled.Language,
                         )
@@ -528,7 +528,7 @@ private fun StatusScreen(navController: NavHostController, viewModel: StatusView
                         if (group.id == "network") {
                             SectionHeader(group.name, group.allComponents.size) {
                                 ExternalUrlButton(
-                                    label = "Dashboard",
+                                    label = "Open Dashboard",
                                     url = "https://dashboard.as212683.net/d/olilo-traffic-analytics-001/traffic-analytics?orgId=2&from=now-1h&to=now&timezone=browser",
                                     icon = Icons.Filled.Language,
                                 )
@@ -1104,20 +1104,18 @@ private fun SettingsScreen(navController: NavHostController) {
         ) {
             item {
                 SettingsSection("Need Help?") {
-                    SettingsLinkRow("Find us on Discord", "https://discord.gg/olilo", Icons.Filled.Language, navController, R.drawable.logo_discord)
-                    SettingsLinkRow("Find us on Reddit", "https://www.reddit.com/r/Olilo", Icons.Filled.Language, navController, R.drawable.logo_reddit)
+                    SettingsNavRow("Contact Us", Icons.Filled.Email, showDivider = false) { navController.navigate("contact") }
                 }
             }
             item {
                 SettingsSection("Legal Information") {
                     SettingsNavRow("About", Icons.Filled.Info) { navController.navigate("about") }
-                    SettingsNavRow("Legal Disclaimer", Icons.Filled.Gavel) { navController.navigate("legal") }
                     SettingsLinkRow("Privacy Policy", "https://olilo.co.uk/privacy", Icons.Filled.Description, navController)
                     SettingsLinkRow("Terms & Conditions", "https://olilo.co.uk/terms", Icons.Filled.Description, navController)
                 }
             }
             item {
-                SettingsSection("About Olilo Status") {
+                SettingsSection("Olilo Status") {
                     SettingsLinkRow(
                         title = "Contribute to Olilo Status on GitLab",
                         url = "https://gitlab.com/team-olilo/status-app",
@@ -1208,7 +1206,7 @@ private fun SettingsRow(
     showDivider: Boolean = true,
 ) {
     androidx.compose.material3.ListItem(
-        headlineContent = { Text(title, color = OliloPurple) },
+        headlineContent = { Text(title, color = Color.White) },
         leadingContent = {
             if (logoResId != null) {
                 Image(
@@ -1260,6 +1258,55 @@ private fun WebPage(navController: NavHostController, title: String, url: String
 }
 
 @Composable
+private fun ContactUsPage(navController: NavHostController) {
+    Column(Modifier.fillMaxSize()) {
+        OliloTopBar(title = "Contact Us", navController = navController)
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text("Need to contact the team?", style = MaterialTheme.typography.titleMedium, color = Color(0xFFCEC1D8))
+            StatusCard {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    SettingsLinkRow(
+                        "Submit a support ticket on Discord",
+                        "https://discord.gg/olilo",
+                        Icons.Filled.Language,
+                        navController,
+                        R.drawable.logo_discord,
+                    )
+                    SettingsLinkRow(
+                        "Post to the community on Reddit",
+                        "https://www.reddit.com/r/Olilo",
+                        Icons.Filled.Language,
+                        navController,
+                        R.drawable.logo_reddit,
+                        showDivider = false,
+                    )
+                }
+            }
+            Text(
+                "Support links open to external services. Official Olilo staff can be identified either by the \"Olilo Management\" & \"Olilo Staff\" flairs on Reddit or \"Management\" & \"Staff\" roles on Discord.",
+                color = Color(0xFFCEC1D8),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(Modifier.height(44.dp))
+            Image(
+                painter = painterResource(R.drawable.olilo),
+                contentDescription = "Olilo",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .height(36.dp)
+                    .align(Alignment.CenterHorizontally),
+            )
+        }
+    }
+}
+
+@Composable
 private fun TextPage(navController: NavHostController, title: String, body: String) {
     Column(Modifier.fillMaxSize()) {
         OliloTopBar(title = title, navController = navController)
@@ -1270,7 +1317,7 @@ private fun TextPage(navController: NavHostController, title: String, body: Stri
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text("Olilo Status", style = MaterialTheme.typography.titleMedium, color = Color(0xFFCEC1D8))
+            Text("About this application:", style = MaterialTheme.typography.titleMedium, color = Color(0xFFCEC1D8))
             StatusCard {
                 Text(body)
             }
@@ -1287,21 +1334,14 @@ private fun TextPage(navController: NavHostController, title: String, body: Stri
     }
 }
 
-private const val aboutText = """Olilo Status is built for fast and simple access for checking the current status of the Olilo Network,
-Services, Planned Maintenance & Updates.
+private const val aboutText = """This application is developed by Aaron Doe and contents herein are owned by Olilo UK & Ireland Ltd.
 
-Olilo Status is built by Aaron Doe and published by Olilo UK & Ireland Ltd.
+Aaron Doe (The Developer) is in no way affiliated with Olilo (The Company) other than the development and maintenance of this application.
 
-This application is Open Source and full source code is available on the Olilo Team GitLab."""
-
-private const val legalText = """This application is developed by Aaron Doe and it's contents are owned by Olilo UK & Ireland Ltd.
-
-Aaron Doe (developer) is in no way affiliated with Olilo (company) other than the development of this application.
-
-Unauthorized copying, modification, distribution, or reverse engineering of any part of this application is prohibited except where permitted by law.
+Unauthorized copying, modification, distribution, or reverse engineering of any part of this application is prohibited except where permitted by law and the project's open source license.
 
 (c) 2026 Olilo UK & Ireland Ltd. All rights reserved.
 
 Company Number: 16352417 (Olilo UK & Ireland Ltd.)
 
-For legal enquiries, please contact Olilo directly."""
+For legal enquiries, please contact us."""

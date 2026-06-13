@@ -386,7 +386,7 @@ struct StatusView: View {
             .background(OliloDarkGradientBackground())
             .sheet(isPresented: $isDashboardPresented) {
                 if let dashboardURL {
-                    OliloWebViewSheet(title: "Dashboard", url: dashboardURL)
+                    OliloWebViewSheet(title: "Olilo Dashboard", url: dashboardURL)
                 }
             }
             .sheet(isPresented: $isComponentEditorPresented) {
@@ -517,7 +517,7 @@ private struct StatusSectionHeader: View {
                 .background(.thinMaterial, in: Capsule())
             Spacer()
             if let dashboardAction {
-                Button("Dashboard", action: dashboardAction)
+                Button("Open Dashboard", action: dashboardAction)
                     .font(.caption.weight(.semibold))
                     .buttonStyle(.bordered)
                     .tint(Color.oliloPurple)
