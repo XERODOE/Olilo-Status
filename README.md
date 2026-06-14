@@ -9,6 +9,8 @@ Olilo Status the open source status app for the Olilo ISP in the UK & Ireland. I
 <p>
   <img src="App%20Store/olilo-ios-1.png" width="180" alt="Olilo Status iOS screenshot 1">
   <img src="App%20Store/olilo-ios-2.png" width="180" alt="Olilo Status iOS screenshot 2">
+  <img src="App%20Store/olilo-ios-3.png" width="180" alt="Olilo Status iOS screenshot 3">
+  <img src="App%20Store/olilo-ios-4.png" width="180" alt="Olilo Status iOS screenshot 4">
 </p>
 
 ### Android
@@ -16,12 +18,15 @@ Olilo Status the open source status app for the Olilo ISP in the UK & Ireland. I
 <p>
   <img src="Play%20Store/olilo-android-1.png" width="180" alt="Olilo Status Android screenshot 1">
   <img src="Play%20Store/olilo-android-2.png" width="180" alt="Olilo Status Android screenshot 2">
+  <img src="Play%20Store/olilo-android-3.png" width="180" alt="Olilo Status Android screenshot 3">
+  <img src="Play%20Store/olilo-android-4.png" width="180" alt="Olilo Status Android screenshot 4">
 </p>
 
 ## Features
 
 - Live overview of the Olilo Network.
 - Service and component health grouped by status.
+- Push Notification for Network Alerts
 - Active incident and maintenance cards with direct links to status updates.
 - Notice history with filters for incidents and maintenance.
 - Direct contact links for the Olilo Teams official Discord and Reddit channels.
@@ -92,10 +97,13 @@ Contributions are welcome. Keep changes focused, follow the existing SwiftUI str
 Useful areas for contributions include:
 
 - Accessibility improvements.
-- Status display refinements.
-- Widget improvements.
+- Feature additions
 - Documentation updates.
 - Bug reports with device, OS version, and reproduction steps.
+
+After contributing a set amount to the project, you'll be added to the contributors list.
+
+(For privacy reasons, this will be on request only)
 
 ## Support and Community
 
