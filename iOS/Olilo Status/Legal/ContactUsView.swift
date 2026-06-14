@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct ContactUsView: View {
-    @Environment(\.dismiss) private var dismiss
-
     var body: some View {
         ZStack(alignment: .bottom) {
             Form {
@@ -28,20 +26,9 @@ struct ContactUsView: View {
                 .padding(.bottom, 24)
         }
         .navigationTitle("Contact Us")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                        Text("Back")
-                    }
-                    .foregroundStyle(Color.oliloPurple)
-                }
-                .tint(Color.oliloPurple)
+            ToolbarItem(placement: .principal) {
+                OliloToolbarLogo()
             }
         }
     }
