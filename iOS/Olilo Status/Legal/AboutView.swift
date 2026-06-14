@@ -2,7 +2,7 @@ import SwiftUI
 
 struct AboutView: View {
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
             OliloDarkGradientBackground()
                 .ignoresSafeArea()
 
@@ -50,14 +50,15 @@ struct AboutView: View {
                             RoundedRectangle(cornerRadius: 24, style: .continuous)
                                 .stroke(.white.opacity(0.15), lineWidth: 1)
                         }
+
+                    OliloFooterLogo()
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.top, 20)
+                        .padding(.bottom, 24)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
-                .padding(.bottom, 80)
             }
-
-            LegalPageBottomLogo()
-                .padding(.bottom, 24)
         }
         .navigationTitle("About")
         .toolbar {
@@ -68,7 +69,7 @@ struct AboutView: View {
     }
 }
 
-struct LegalPageBottomLogo: View {
+struct OliloFooterLogo: View {
     var body: some View {
         Image("Olilo")
             .resizable()

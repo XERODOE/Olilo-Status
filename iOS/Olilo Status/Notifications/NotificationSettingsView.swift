@@ -20,53 +20,59 @@ struct NotificationSettingsView: View {
     private let networks = ["Openreach", "CityFibre", "Freedom Fibre"]
 
     var body: some View {
-        Form {
-            Section {
-                Toggle(isOn: enabledBinding) {
-                    notificationToggleLabel("Enable notifications")
-                }
-            } header: {
-                Text("Notifications")
-            } footer: {
-                Text("Get notified about Olilo Network updates on this device.")
-            }
-
-            if manager.isEnabled {
+        ZStack(alignment: .bottom) {
+            Form {
                 Section {
-                    Toggle(isOn: prefBinding(\.incidents)) {
-                        notificationToggleLabel("Incidents")
-                    }
-                    Toggle(isOn: prefBinding(\.maintenance)) {
-                        notificationToggleLabel("Scheduled maintenance")
-                    }
-                    Toggle(isOn: prefBinding(\.componentAlerts)) {
-                        notificationToggleLabel("Component status changes")
+                    Toggle(isOn: enabledBinding) {
+                        notificationToggleLabel("Enable notifications")
                     }
                 } header: {
-                    Text("Notify me about")
-                        .foregroundStyle(Color.secondary)
+                    Text("Notifications")
                 } footer: {
-                    Text("Choose which notices you get notified about.")
+                    Text("Get notified about Olilo Network updates on this device.")
                 }
 
-                if manager.preferences.componentAlerts {
+                if manager.isEnabled {
                     Section {
-                        ForEach(networks, id: \.self) { network in
-                            Toggle(isOn: networkBinding(network)) {
-                                notificationToggleLabel(network)
-                            }
+                        Toggle(isOn: prefBinding(\.incidents)) {
+                            notificationToggleLabel("Incidents")
+                        }
+                        Toggle(isOn: prefBinding(\.maintenance)) {
+                            notificationToggleLabel("Scheduled maintenance")
+                        }
+                        Toggle(isOn: prefBinding(\.componentAlerts)) {
+                            notificationToggleLabel("Component status changes")
                         }
                     } header: {
-                        Text("Networks")
+                        Text("Notify me about")
                             .foregroundStyle(Color.secondary)
                     } footer: {
-                        Text("Choose which networks you get notifed about. With none selected you'll get alerts for all networks.")
+                        Text("Choose which notices you get notified about.")
+                    }
+
+                    if manager.preferences.componentAlerts {
+                        Section {
+                            ForEach(networks, id: \.self) { network in
+                                Toggle(isOn: networkBinding(network)) {
+                                    notificationToggleLabel(network)
+                                }
+                            }
+                        } header: {
+                            Text("Networks")
+                                .foregroundStyle(Color.secondary)
+                        } footer: {
+                            Text("Choose which networks you get notifed about. With none selected you'll get alerts for all networks.")
+                        }
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(OliloDarkGradientBackground())
+            .safeAreaPadding(.bottom, 72)
+
+            OliloFooterLogo()
+                .padding(.bottom, 24)
         }
-        .scrollContentBackground(.hidden)
-        .background(OliloDarkGradientBackground())
         .tint(Color.oliloPurple)
         .navigationTitle("Status Updates")
         .toolbar {

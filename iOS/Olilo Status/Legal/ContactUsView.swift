@@ -22,7 +22,7 @@ struct ContactUsView: View {
             .background(OliloDarkGradientBackground())
             .safeAreaPadding(.bottom, 72)
 
-            LegalPageBottomLogo()
+            OliloFooterLogo()
                 .padding(.bottom, 24)
         }
         .navigationTitle("Contact Us")
