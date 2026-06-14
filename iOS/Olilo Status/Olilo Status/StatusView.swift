@@ -565,10 +565,7 @@ private struct OverviewCard: View {
         StatusCard {
             VStack(alignment: .leading, spacing: 18) {
                 HStack(alignment: .top, spacing: 14) {
-                    Image(systemName: statusSeverity(summary.page.status) == 0 ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
-                        .font(.system(size: 34, weight: .semibold))
-                        .foregroundStyle(statusColor(summary.page.status))
-                        .accessibilityHidden(true)
+                    PulsingStatusIcon(status: summary.page.status)
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Olilo Network Status")
                             .font(.title2.weight(.bold))
@@ -607,6 +604,56 @@ private struct OverviewCard: View {
         }
         .sheet(isPresented: $isStatusPagePresented) {
             OliloWebViewSheet(title: "Olilo Status", url: summary.page.url)
+        }
+    }
+}
+
+// Animated StatusSeverity icon.
+// Pulses by default but respects users set accessibility settings.
+// Disabled if reduceMotion is enabled and reverted to a static state.
+
+private struct PulsingStatusIcon: View {
+    let status: String
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isPulsing = false
+
+    private var color: Color { statusColor(status) }
+    private var systemImage: String {
+        statusSeverity(status) == 0 ? "checkmark.seal.fill" : "exclamationmark.triangle.fill"
+    }
+
+    var body: some View {
+        ZStack {
+            Image(systemName: systemImage)
+                .font(.system(size: 34, weight: .semibold))
+                .foregroundStyle(color)
+                .opacity(isPulsing && !reduceMotion ? 0.18 : 0)
+                .scaleEffect(isPulsing && !reduceMotion ? 1.45 : 1)
+                .animation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true), value: isPulsing)
+
+            Image(systemName: systemImage)
+                .font(.system(size: 34, weight: .semibold))
+                .foregroundStyle(color)
+                .shadow(color: color.opacity(0.25), radius: 5)
+        }
+        .frame(width: 44, height: 44)
+        .accessibilityHidden(true)
+        .onAppear(perform: startPulse)
+        .onChange(of: status) { _, _ in
+            startPulse()
+        }
+    }
+
+    private func startPulse() {
+        guard !reduceMotion else {
+            isPulsing = false
+            return
+        }
+
+        isPulsing = false
+        DispatchQueue.main.async {
+            isPulsing = true
         }
     }
 }

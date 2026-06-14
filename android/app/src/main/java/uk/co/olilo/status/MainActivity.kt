@@ -11,6 +11,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -85,6 +90,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -690,12 +696,7 @@ private fun OverviewCard(
     StatusCard {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(verticalAlignment = Alignment.Top) {
-                Icon(
-                    if (statusSeverity(summary.page.status) == 0) Icons.Filled.CheckCircle else Icons.Filled.Error,
-                    contentDescription = null,
-                    tint = statusColor(summary.page.status),
-                    modifier = Modifier.size(38.dp),
-                )
+                PulsingStatusIcon(summary.page.status)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text("Olilo Network Status", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
@@ -723,6 +724,50 @@ private fun OverviewCard(
                 }
             }
         }
+    }
+}
+
+// STATUS ICON ANIMATION
+// Animated status severity icon, doesn't match the iOS implementaion exactly due to android's
+// difference of accessibilty settings. Will be enabled regardless of settings.
+
+@Composable
+private fun PulsingStatusIcon(status: String) {
+    val color = statusColor(status)
+    val icon = if (statusSeverity(status) == 0) Icons.Filled.CheckCircle else Icons.Filled.Error
+    val transition = rememberInfiniteTransition(label = "Status icon pulse")
+    val pulse by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1400),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "Status icon pulse progress",
+    )
+
+    Box(
+        modifier = Modifier.size(44.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = color.copy(alpha = 0.18f),
+            modifier = Modifier
+                .size(38.dp)
+                .graphicsLayer {
+                    scaleX = 1f + (pulse * 0.45f)
+                    scaleY = 1f + (pulse * 0.45f)
+                    alpha = pulse
+                },
+        )
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(38.dp),
+        )
     }
 }
 
