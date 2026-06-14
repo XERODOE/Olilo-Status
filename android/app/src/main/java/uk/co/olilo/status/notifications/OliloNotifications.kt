@@ -35,10 +35,15 @@ object OliloNotifications {
 
     /** Request the FCM token and register this device with the backend. */
     suspend fun enable(context: Context) {
-        NotificationStore.setEnabled(context, true)
-        val token = fetchToken()
-        NotificationStore.saveToken(context, token)
-        register(context, token)
+        try {
+            NotificationStore.setEnabled(context, true)
+            val token = fetchToken()
+            NotificationStore.saveToken(context, token)
+            register(context, token)
+        } catch (error: Throwable) {
+            NotificationStore.setEnabled(context, false)
+            throw error
+        }
     }
 
     /** Stop delivery to this device. */

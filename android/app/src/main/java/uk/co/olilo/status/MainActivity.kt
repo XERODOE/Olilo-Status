@@ -1,12 +1,16 @@
 package uk.co.olilo.status
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -76,6 +80,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -90,6 +95,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -97,6 +103,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
+import uk.co.olilo.status.notifications.NotificationPreferences
+import uk.co.olilo.status.notifications.NotificationStore
+import uk.co.olilo.status.notifications.OliloNotifications
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -153,6 +163,7 @@ private fun OliloApp() {
                 composable(Route.Status.path) { StatusScreen(navController) }
                 composable(Route.Notices.path) { NoticesScreen(navController) }
                 composable(Route.Settings.path) { SettingsScreen(navController) }
+                composable("notification-settings") { NotificationSettingsScreen(navController) }
                 composable("about") { TextPage(navController, "About", aboutText) }
                 composable("contact") { ContactUsPage(navController) }
                 composable("web/{title}/{url}") { entry ->
@@ -1106,6 +1117,13 @@ private fun SettingsScreen(navController: NavHostController) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
+                SettingsSection("Notifications") {
+                    SettingsNavRow("Status Updates", Icons.Filled.Notifications, showDivider = false) {
+                        navController.navigate("notification-settings")
+                    }
+                }
+            }
+            item {
                 SettingsSection("Need Help?") {
                     SettingsNavRow("Contact Us", Icons.Filled.Email, showDivider = false) { navController.navigate("contact") }
                 }
@@ -1162,6 +1180,176 @@ private fun SettingsScreen(navController: NavHostController) {
     }
 }
 
+@Composable
+private fun NotificationSettingsScreen(navController: NavHostController) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var isEnabled by remember { mutableStateOf(NotificationStore.isEnabled(context)) }
+    var preferences by remember { mutableStateOf(NotificationStore.preferences(context)) }
+    var isSaving by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val networks = listOf("Openreach", "CityFibre", "Freedom Fibre")
+
+    fun enableNotifications() {
+        isSaving = true
+        errorMessage = null
+        scope.launch {
+            runCatching { OliloNotifications.enable(context) }
+                .onSuccess { isEnabled = true }
+                .onFailure { error ->
+                    isEnabled = false
+                    errorMessage = error.localizedMessage ?: "Unable to enable notifications"
+                }
+            isSaving = false
+        }
+    }
+
+    fun disableNotifications() {
+        isSaving = true
+        errorMessage = null
+        scope.launch {
+            runCatching { OliloNotifications.disable(context) }
+                .onSuccess { isEnabled = false }
+                .onFailure { error ->
+                    isEnabled = false
+                    errorMessage = error.localizedMessage ?: "Unable to disable notifications"
+                }
+            isSaving = false
+        }
+    }
+
+    fun updatePreferences(next: NotificationPreferences) {
+        preferences = next
+        errorMessage = null
+        scope.launch {
+            runCatching { OliloNotifications.updatePreferences(context, next) }
+                .onFailure { error ->
+                    errorMessage = error.localizedMessage ?: "Unable to update notification preferences"
+                }
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) {
+            enableNotifications()
+        } else {
+            isEnabled = false
+            NotificationStore.setEnabled(context, false)
+        }
+    }
+
+    fun onEnabledChange(next: Boolean) {
+        if (next) {
+            val permission = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+            if (permission == PackageManager.PERMISSION_GRANTED) {
+                enableNotifications()
+            } else {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        } else {
+            disableNotifications()
+        }
+    }
+
+    Column(Modifier.fillMaxSize()) {
+        OliloTopBar(title = "Status Updates", navController = navController)
+        LazyColumn(
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item {
+                SettingsSection("Notifications") {
+                    SettingsToggleRow(
+                        title = "Enable notifications",
+                        icon = Icons.Filled.Notifications,
+                        checked = isEnabled,
+                        enabled = !isSaving,
+                        showDivider = false,
+                        onCheckedChange = ::onEnabledChange,
+                    )
+                    Text(
+                        "Get notified about Olilo Network updates on this device.",
+                        color = Color(0xFFCEC1D8),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                }
+            }
+
+            if (isEnabled) {
+                item {
+                    SettingsSection("Notify me about") {
+                        SettingsToggleRow(
+                            title = "Incidents",
+                            icon = Icons.Filled.Warning,
+                            checked = preferences.incidents,
+                            onCheckedChange = { updatePreferences(preferences.copy(incidents = it)) },
+                        )
+                        SettingsToggleRow(
+                            title = "Scheduled maintenance",
+                            icon = Icons.Filled.Work,
+                            checked = preferences.maintenance,
+                            onCheckedChange = { updatePreferences(preferences.copy(maintenance = it)) },
+                        )
+                        SettingsToggleRow(
+                            title = "Component status changes",
+                            icon = Icons.Filled.Dashboard,
+                            checked = preferences.componentAlerts,
+                            showDivider = false,
+                            onCheckedChange = { updatePreferences(preferences.copy(componentAlerts = it)) },
+                        )
+                        Text(
+                            "Choose which notices you get notified about.",
+                            color = Color(0xFFCEC1D8),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        )
+                    }
+                }
+
+                if (preferences.componentAlerts) {
+                    item {
+                        SettingsSection("Networks") {
+                            networks.forEachIndexed { index, network ->
+                                SettingsToggleRow(
+                                    title = network,
+                                    icon = Icons.Filled.Language,
+                                    checked = network in preferences.networks,
+                                    showDivider = index != networks.lastIndex,
+                                    onCheckedChange = { checked ->
+                                        val nextNetworks = if (checked) {
+                                            (preferences.networks + network).distinct()
+                                        } else {
+                                            preferences.networks.filterNot { it == network }
+                                        }
+                                        updatePreferences(preferences.copy(networks = nextNetworks))
+                                    },
+                                )
+                            }
+                            Text(
+                                "With none selected, alerts are sent for all networks.",
+                                color = Color(0xFFCEC1D8),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            )
+                        }
+                    }
+                }
+            }
+
+            errorMessage?.let { message ->
+                item {
+                    StatusCard {
+                        Text(message, color = Color(0xFFFFB74D), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+        }
+    }
+}
+
 private fun appVersion(context: Context): String {
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     return packageInfo.versionName.orEmpty().ifBlank { "Unknown" }
@@ -1198,6 +1386,45 @@ private fun SettingsLinkRow(
 @Composable
 private fun SettingsNavRow(title: String, icon: ImageVector, showDivider: Boolean = true, onClick: () -> Unit) {
     SettingsRow(title, icon, onClick, showDivider = showDivider)
+}
+
+@Composable
+private fun SettingsToggleRow(
+    title: String,
+    icon: ImageVector,
+    checked: Boolean,
+    enabled: Boolean = true,
+    showDivider: Boolean = true,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    androidx.compose.material3.ListItem(
+        headlineContent = { Text(title, color = Color.White) },
+        leadingContent = { Icon(icon, contentDescription = null, tint = OliloPurple) },
+        trailingContent = {
+            Switch(
+                checked = checked,
+                enabled = enabled,
+                onCheckedChange = onCheckedChange,
+            )
+        },
+        colors = ListItemDefaults.colors(
+            containerColor = Color.Transparent,
+            headlineColor = Color.White,
+            leadingIconColor = OliloPurple,
+        ),
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.Transparent)
+            .clickable(enabled = enabled) { onCheckedChange(!checked) },
+    )
+    if (showDivider) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color.White.copy(alpha = 0.06f)),
+        )
+    }
 }
 
 @Composable
