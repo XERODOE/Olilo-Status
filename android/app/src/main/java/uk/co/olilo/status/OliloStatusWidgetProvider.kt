@@ -18,16 +18,17 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
     }
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
-        val editor = context.getSharedPreferences(WidgetPreferencesName, Context.MODE_PRIVATE).edit()
+        val editor = context.getSharedPreferences(WIDGET_PREFERENCES_NAME, Context.MODE_PRIVATE).edit()
         appWidgetIds.forEach { appWidgetId -> editor.remove(sourceKey(appWidgetId)) }
         editor.apply()
     }
 
     companion object {
-        val SourceNames = listOf("Openreach", "CityFibre", "Freedom Fibre")
+        val sourceNames = listOf("Openreach", "CityFibre", "Freedom Fibre")
+        private val json = Json { ignoreUnknownKeys = true }
 
         fun saveSource(context: Context, appWidgetId: Int, sourceName: String) {
-            context.getSharedPreferences(WidgetPreferencesName, Context.MODE_PRIVATE)
+            context.getSharedPreferences(WIDGET_PREFERENCES_NAME, Context.MODE_PRIVATE)
                 .edit()
                 .putString(sourceKey(appWidgetId), sourceName)
                 .apply()
@@ -82,15 +83,14 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
         }
 
         private fun fetchWidgetComponent(sourceName: String): StatusComponent? = runCatching {
-            val connection = (URL(ComponentsUrl).openConnection() as HttpURLConnection).apply {
+            val connection = (URL(COMPONENTS_URL).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 15_000
                 readTimeout = 15_000
                 requestMethod = "GET"
             }
             try {
                 val body = connection.inputStream.bufferedReader().use { it.readText() }
-                Json { ignoreUnknownKeys = true }
-                    .decodeFromString<ComponentsResponse>(body)
+                json.decodeFromString<ComponentsResponse>(body)
                     .components
                     .firstOrNull { it.name == sourceName }
             } finally {
@@ -99,10 +99,10 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
         }.getOrNull()
 
         private fun loadSource(context: Context, appWidgetId: Int): String =
-            context.getSharedPreferences(WidgetPreferencesName, Context.MODE_PRIVATE)
+            context.getSharedPreferences(WIDGET_PREFERENCES_NAME, Context.MODE_PRIVATE)
                 .getString(sourceKey(appWidgetId), null)
-                ?.takeIf { it in SourceNames }
-                ?: SourceNames.first()
+                ?.takeIf { it in sourceNames }
+                ?: sourceNames.first()
 
         private fun sourceKey(appWidgetId: Int): String = "source_$appWidgetId"
 
@@ -110,7 +110,7 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
             status == "UP" || status == "OPERATIONAL"
         }
 
-        private const val ComponentsUrl = "https://status.olilo.co.uk/v3/components.json"
-        private const val WidgetPreferencesName = "olilo_status_widget_preferences"
+        private const val COMPONENTS_URL = "https://status.olilo.co.uk/v3/components.json"
+        private const val WIDGET_PREFERENCES_NAME = "olilo_status_widget_preferences"
     }
 }

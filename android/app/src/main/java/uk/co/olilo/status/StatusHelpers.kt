@@ -7,10 +7,10 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
-val OliloPurple = Color(0xFFB347FF)
-val OliloBackgroundTop = Color(0xFF050108)
-val OliloBackgroundMid = Color(0xFF210A3D)
-val OliloBackgroundBottom = Color(0xFF4D147A)
+val oliloPurple = Color(0xFFB347FF)
+val oliloBackgroundTop = Color(0xFF050108)
+val oliloBackgroundMid = Color(0xFF210A3D)
+val oliloBackgroundBottom = Color(0xFF4D147A)
 
 fun statusSeverity(status: String): Int = when (status.uppercase(Locale.UK)) {
     "UP", "OPERATIONAL", "RESOLVED", "COMPLETED" -> 0
@@ -22,7 +22,7 @@ fun statusSeverity(status: String): Int = when (status.uppercase(Locale.UK)) {
 }
 
 fun statusColor(status: String): Color = when (status.uppercase(Locale.UK)) {
-    "UP", "OPERATIONAL", "RESOLVED", "COMPLETED" -> OliloPurple
+    "UP", "OPERATIONAL", "RESOLVED", "COMPLETED" -> oliloPurple
     "UNDERMAINTENANCE", "MONITORING", "NOTSTARTEDYET" -> Color(0xFF64B5F6)
     "DEGRADEDPERFORMANCE", "DEGRADED_PERFORMANCE", "IDENTIFIED" -> Color(0xFFFFB74D)
     "PARTIALOUTAGE", "PARTIAL_OUTAGE", "INVESTIGATING" -> Color(0xFFFFE066)

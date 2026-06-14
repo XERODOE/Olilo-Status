@@ -73,8 +73,8 @@ class OliloStatusWidgetConfigurationActivity : ComponentActivity() {
 private fun WidgetConfigurationScreen(onSourceSelected: (String) -> Unit) {
     MaterialTheme(
         colorScheme = androidx.compose.material3.darkColorScheme(
-            primary = OliloPurple,
-            background = OliloBackgroundTop,
+            primary = oliloPurple,
+            background = oliloBackgroundTop,
             surface = Color(0xD91A1025),
             onSurface = Color.White,
         ),
@@ -82,7 +82,7 @@ private fun WidgetConfigurationScreen(onSourceSelected: (String) -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.linearGradient(listOf(OliloBackgroundTop, OliloBackgroundMid, OliloBackgroundBottom)))
+                .background(Brush.linearGradient(listOf(oliloBackgroundTop, oliloBackgroundMid, oliloBackgroundBottom)))
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -98,7 +98,7 @@ private fun WidgetConfigurationScreen(onSourceSelected: (String) -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color(0xFFCEC1D8),
             )
-            OliloStatusWidgetProvider.SourceNames.forEach { sourceName ->
+            OliloStatusWidgetProvider.sourceNames.forEach { sourceName ->
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -112,7 +112,7 @@ private fun WidgetConfigurationScreen(onSourceSelected: (String) -> Unit) {
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(sourceName, modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
-                        Icon(Icons.Filled.Check, contentDescription = null, tint = OliloPurple)
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = oliloPurple)
                     }
                 }
             }

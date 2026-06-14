@@ -191,9 +191,9 @@ private fun NavHostController.openWeb(title: String, url: String) {
 @Composable
 private fun OliloStatusTheme(content: @Composable () -> Unit) {
     val colorScheme = androidx.compose.material3.darkColorScheme(
-        primary = OliloPurple,
+        primary = oliloPurple,
         secondary = Color(0xFF64B5F6),
-        background = OliloBackgroundTop,
+        background = oliloBackgroundTop,
         surface = Color(0xD91A1025),
         surfaceVariant = Color(0xE6261737),
         onPrimary = Color.White,
@@ -210,7 +210,7 @@ private fun GradientBackground(content: @Composable () -> Unit) {
             .fillMaxSize()
             .background(
                 Brush.linearGradient(
-                    listOf(OliloBackgroundTop, OliloBackgroundMid, OliloBackgroundBottom),
+                    listOf(oliloBackgroundTop, oliloBackgroundMid, oliloBackgroundBottom),
                 ),
             ),
     ) {
@@ -239,7 +239,7 @@ private fun OliloTopBar(
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = OliloPurple,
+                    tint = oliloPurple,
                 )
             }
         } else if (onConfigure != null) {
@@ -250,7 +250,7 @@ private fun OliloTopBar(
                 Icon(
                     Icons.Filled.Tune,
                     contentDescription = "Edit status components",
-                    tint = OliloPurple,
+                    tint = oliloPurple,
                 )
             }
         }
@@ -268,7 +268,7 @@ private fun OliloTopBar(
                     Icon(
                         Icons.Filled.Refresh,
                         contentDescription = "Refresh",
-                        tint = OliloPurple,
+                        tint = oliloPurple,
                     )
                 }
             }
@@ -289,7 +289,7 @@ private fun OpenUrlButton(
         leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
         colors = AssistChipDefaults.assistChipColors(
             labelColor = Color.White,
-            leadingIconContentColor = OliloPurple,
+            leadingIconContentColor = oliloPurple,
             containerColor = Color(0x332B1C3D),
         ),
     )
@@ -339,7 +339,7 @@ private fun LoadingOrError(
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         when {
             isLoading -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CircularProgressIndicator(color = OliloPurple)
+                CircularProgressIndicator(color = oliloPurple)
                 Spacer(Modifier.height(12.dp))
                 Text(loadingText)
             }
@@ -357,9 +357,9 @@ private fun LoadingOrError(
     }
 }
 
-private const val ComponentPreferencesName = "status_component_display_preferences"
-private const val HiddenComponentIdsKey = "hidden_component_ids"
-private const val OrderedComponentIdsKey = "ordered_component_ids"
+private const val COMPONENT_PREFERENCES_NAME = "status_component_display_preferences"
+private const val HIDDEN_COMPONENT_IDS_KEY = "hidden_component_ids"
+private const val ORDERED_COMPONENT_IDS_KEY = "ordered_component_ids"
 
 private data class ComponentDisplayPreferences(
     val hiddenComponentIds: Set<String> = emptySet(),
@@ -400,10 +400,10 @@ private data class ComponentDisplayPreferences(
 }
 
 private fun loadComponentDisplayPreferences(context: Context): ComponentDisplayPreferences {
-    val sharedPreferences = context.getSharedPreferences(ComponentPreferencesName, Context.MODE_PRIVATE)
+    val sharedPreferences = context.getSharedPreferences(COMPONENT_PREFERENCES_NAME, Context.MODE_PRIVATE)
     return ComponentDisplayPreferences(
-        hiddenComponentIds = sharedPreferences.getStringSet(HiddenComponentIdsKey, mutableSetOf()).orEmpty().toSet(),
-        orderedComponentIds = sharedPreferences.getString(OrderedComponentIdsKey, null)
+        hiddenComponentIds = sharedPreferences.getStringSet(HIDDEN_COMPONENT_IDS_KEY, null).orEmpty().toSet(),
+        orderedComponentIds = sharedPreferences.getString(ORDERED_COMPONENT_IDS_KEY, null)
             ?.split('|')
             ?.filter { it.isNotBlank() }
             .orEmpty(),
@@ -411,10 +411,10 @@ private fun loadComponentDisplayPreferences(context: Context): ComponentDisplayP
 }
 
 private fun saveComponentDisplayPreferences(context: Context, preferences: ComponentDisplayPreferences) {
-    context.getSharedPreferences(ComponentPreferencesName, Context.MODE_PRIVATE)
+    context.getSharedPreferences(COMPONENT_PREFERENCES_NAME, Context.MODE_PRIVATE)
         .edit()
-        .putStringSet(HiddenComponentIdsKey, preferences.hiddenComponentIds.toMutableSet())
-        .putString(OrderedComponentIdsKey, preferences.orderedComponentIds.joinToString("|"))
+        .putStringSet(HIDDEN_COMPONENT_IDS_KEY, preferences.hiddenComponentIds.toMutableSet())
+        .putString(ORDERED_COMPONENT_IDS_KEY, preferences.orderedComponentIds.joinToString("|"))
         .apply()
 }
 
@@ -648,10 +648,10 @@ private fun ComponentDisplayEditorRow(
             )
         }
         IconButton(onClick = onMoveUp, enabled = canMoveUp) {
-            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Move up", tint = OliloPurple)
+            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Move up", tint = oliloPurple)
         }
         IconButton(onClick = onMoveDown, enabled = canMoveDown) {
-            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Move down", tint = OliloPurple)
+            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Move down", tint = oliloPurple)
         }
         Switch(checked = isVisible, onCheckedChange = onVisibilityChange)
     }
@@ -667,7 +667,7 @@ private fun componentEditorDetail(component: StatusComponent): String = buildLis
 private fun EmptyComponentsCard() {
     StatusCard {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Icon(Icons.Filled.VisibilityOff, contentDescription = null, tint = OliloPurple)
+            Icon(Icons.Filled.VisibilityOff, contentDescription = null, tint = oliloPurple)
             Text("No components shown", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Text("Use the component editor to show services on this page.", color = Color(0xFFCEC1D8))
         }
@@ -823,68 +823,6 @@ private fun MaintenanceCard(maintenance: Maintenance, navController: NavHostCont
 }
 
 @Composable
-private fun ComponentGroupCard(group: StatusComponentGroup) {
-    var expanded by remember(group.id) { mutableStateOf(false) }
-    val hasExpandableDetails = group.children.isNotEmpty() || !group.description.isNullOrBlank()
-
-    StatusCard {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            ComponentGroupHeader(
-                group = group,
-                expanded = expanded,
-                hasExpandableDetails = hasExpandableDetails,
-                onToggle = { expanded = !expanded },
-            )
-
-            if (hasExpandableDetails && expanded) {
-                ComponentGroupDetails(group)
-            }
-        }
-    }
-}
-
-@Composable
-private fun ComponentGroupHeader(
-    group: StatusComponentGroup,
-    expanded: Boolean,
-    hasExpandableDetails: Boolean,
-    onToggle: () -> Unit,
-) {
-    Row(
-        verticalAlignment = Alignment.Top,
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(if (hasExpandableDetails) Modifier.clickable(onClick = onToggle) else Modifier),
-    ) {
-        StatusDot(group.worstStatus, 10)
-        Spacer(Modifier.width(10.dp))
-        Column(Modifier.weight(1f)) {
-            Text(group.name, color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Text(readableStatus(group.worstStatus), style = MaterialTheme.typography.labelMedium, color = Color(0xFFCEC1D8))
-        }
-        StatusBadge(readableStatus(group.worstStatus), group.worstStatus)
-        if (hasExpandableDetails) {
-            Spacer(Modifier.width(8.dp))
-            Icon(
-                if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                contentDescription = if (expanded) "Collapse component" else "Expand component",
-                tint = OliloPurple,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ComponentGroupDetails(group: StatusComponentGroup) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        group.description?.takeIf { it.isNotBlank() }?.let {
-            Text(it, style = MaterialTheme.typography.labelMedium, color = Color(0xFFCEC1D8))
-        }
-        group.children.forEach { ComponentRow(it, showGroup = false) }
-    }
-}
-
-@Composable
 private fun ComponentRow(component: StatusComponent, showGroup: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         StatusDot(component.status, 8)
@@ -973,7 +911,7 @@ private fun NoticeFilterChip(selected: Boolean, label: String, onClick: () -> Un
             labelColor = Color.White,
             selectedLabelColor = Color.White,
             containerColor = Color(0x332B1C3D),
-            selectedContainerColor = OliloPurple.copy(alpha = 0.35f),
+            selectedContainerColor = oliloPurple.copy(alpha = 0.35f),
         ),
     )
 }
@@ -1073,7 +1011,7 @@ private fun NoticeHistoryCard(notice: StatusNotice, navController: NavHostContro
                         label = { Text("${updates.size} update${if (updates.size == 1) "" else "s"}") },
                         colors = AssistChipDefaults.assistChipColors(
                             labelColor = Color.White,
-                            containerColor = OliloPurple.copy(alpha = 0.25f),
+                            containerColor = oliloPurple.copy(alpha = 0.25f),
                         ),
                     )
                 }
@@ -1086,7 +1024,7 @@ private fun NoticeHistoryCard(notice: StatusNotice, navController: NavHostContro
 @Composable
 private fun NoticeTitleRow(title: String, subtitle: String, icon: ImageVector, status: String) {
     Row(verticalAlignment = Alignment.Top) {
-        Icon(icon, contentDescription = null, tint = OliloPurple, modifier = Modifier.size(24.dp))
+        Icon(icon, contentDescription = null, tint = oliloPurple, modifier = Modifier.size(24.dp))
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -1444,7 +1382,7 @@ private fun SettingsToggleRow(
 ) {
     androidx.compose.material3.ListItem(
         headlineContent = { Text(title, color = Color.White) },
-        leadingContent = { Icon(icon, contentDescription = null, tint = OliloPurple) },
+        leadingContent = { Icon(icon, contentDescription = null, tint = oliloPurple) },
         trailingContent = {
             Switch(
                 checked = checked,
@@ -1455,7 +1393,7 @@ private fun SettingsToggleRow(
         colors = ListItemDefaults.colors(
             containerColor = Color.Transparent,
             headlineColor = Color.White,
-            leadingIconColor = OliloPurple,
+            leadingIconColor = oliloPurple,
         ),
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
@@ -1490,13 +1428,13 @@ private fun SettingsRow(
                     modifier = Modifier.size(20.dp),
                 )
             } else {
-                Icon(icon, contentDescription = null, tint = OliloPurple)
+                Icon(icon, contentDescription = null, tint = oliloPurple)
             }
         },
         colors = ListItemDefaults.colors(
             containerColor = Color.Transparent,
             headlineColor = Color.White,
-            leadingIconColor = OliloPurple,
+            leadingIconColor = oliloPurple,
         ),
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
@@ -1594,7 +1532,7 @@ private fun AboutPage(navController: NavHostController) {
         ) {
             Text("About this application:", style = MaterialTheme.typography.titleMedium, color = Color(0xFFCEC1D8))
             StatusCard {
-                Text(aboutText)
+                Text(ABOUT_TEXT)
             }
             Text("Olilo Status Contributors", style = MaterialTheme.typography.titleMedium, color = Color(0xFFCEC1D8))
             StatusCard {
@@ -1613,7 +1551,7 @@ private fun AboutPage(navController: NavHostController) {
     }
 }
 
-private const val aboutText = """This application is developed by Aaron Doe and contents herein are owned by Olilo UK & Ireland Ltd.
+private const val ABOUT_TEXT = """This application is developed by Aaron Doe and contents herein are owned by Olilo UK & Ireland Ltd.
 
 Aaron Doe (The Developer) is in no way affiliated with Olilo (The Company) other than the development and maintenance of this application.
 

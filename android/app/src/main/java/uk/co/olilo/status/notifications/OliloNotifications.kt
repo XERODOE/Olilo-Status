@@ -27,9 +27,9 @@ object OliloNotifications {
 
     /**
      * Shared secret sent as `x-api-key`. Leave null if the backend has no
-     * API_KEY configured. A key shipped in the app only deters casual abuse.
+     * API key configured. A key shipped in the app only deters casual abuse.
      */
-    val API_KEY: String? = null
+    private val apiKey: String? = null
 
     private val json = Json { encodeDefaults = true }
 
@@ -105,7 +105,7 @@ object OliloNotifications {
                 readTimeout = 15_000
                 doOutput = true
                 setRequestProperty("Content-Type", "application/json")
-                API_KEY?.let { setRequestProperty("x-api-key", it) }
+                apiKey?.let { setRequestProperty("x-api-key", it) }
             }
             try {
                 connection.outputStream.use { it.write(json.encodeToString(body).toByteArray()) }
