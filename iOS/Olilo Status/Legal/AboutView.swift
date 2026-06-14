@@ -35,6 +35,21 @@ struct AboutView: View {
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
                             .stroke(.white.opacity(0.15), lineWidth: 1)
                     }
+
+                    Text("Olilo Status Contributors")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+
+                    Text("Aydan Abrahams")
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .stroke(.white.opacity(0.15), lineWidth: 1)
+                        }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
