@@ -1,4 +1,4 @@
-package uk.co.olilo.status
+package uk.co.olilo.status.status
 
 import android.text.Html
 import kotlinx.coroutines.Dispatchers

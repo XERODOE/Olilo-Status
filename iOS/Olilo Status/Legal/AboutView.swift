@@ -36,11 +36,11 @@ struct AboutView: View {
                             .stroke(.white.opacity(0.15), lineWidth: 1)
                     }
 
-                    Text("Olilo Status Contributors")
+                    Text("Olilo Status Contributors:")
                         .font(.headline)
                         .foregroundStyle(.secondary)
 
-                    Text("Aydan Abrahams")
+                    Text("Aydan Abrahams (Developer)")
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding()

@@ -1,4 +1,4 @@
-package uk.co.olilo.status
+package uk.co.olilo.status.status
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

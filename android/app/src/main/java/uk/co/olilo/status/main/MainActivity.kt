@@ -1,4 +1,4 @@
-package uk.co.olilo.status
+package uk.co.olilo.status.main
 
 import android.Manifest
 import android.content.Context
@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -73,6 +74,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.Switch
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -82,6 +84,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -100,6 +103,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -112,9 +116,28 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
+import uk.co.olilo.status.status.Incident
+import uk.co.olilo.status.status.Maintenance
+import uk.co.olilo.status.status.NoticeKind
+import uk.co.olilo.status.R
+import uk.co.olilo.status.status.StatusComponent
+import uk.co.olilo.status.status.StatusComponentGroup
+import uk.co.olilo.status.status.StatusNotice
+import uk.co.olilo.status.status.StatusPageSummary
+import uk.co.olilo.status.status.StatusScreenState
+import uk.co.olilo.status.status.formatRemoteDate
+import uk.co.olilo.status.status.formatTime
+import uk.co.olilo.status.status.groupedComponents
 import uk.co.olilo.status.notifications.NotificationPreferences
 import uk.co.olilo.status.notifications.NotificationStore
 import uk.co.olilo.status.notifications.OliloNotifications
+import uk.co.olilo.status.status.oliloBackgroundBottom
+import uk.co.olilo.status.status.oliloBackgroundMid
+import uk.co.olilo.status.status.oliloBackgroundTop
+import uk.co.olilo.status.status.oliloPurple
+import uk.co.olilo.status.status.readableStatus
+import uk.co.olilo.status.status.statusColor
+import uk.co.olilo.status.status.statusSeverity
 
 class MainActivity : ComponentActivity() {
     private var launchRequest by mutableStateOf(LaunchRequest(Route.Status.path, 0))
@@ -222,7 +245,7 @@ private fun NavHostController.openWeb(title: String, url: String) {
 
 @Composable
 private fun OliloStatusTheme(content: @Composable () -> Unit) {
-    val colorScheme = androidx.compose.material3.darkColorScheme(
+    val colorScheme = darkColorScheme(
         primary = oliloPurple,
         secondary = Color(0xFF64B5F6),
         background = oliloBackgroundTop,
@@ -504,7 +527,7 @@ private fun StatusScreen(navController: NavHostController, viewModel: StatusView
         }
 
         LazyColumn(
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             state.summary?.let { summary ->
@@ -733,7 +756,9 @@ private fun OverviewCard(
                 Column(Modifier.weight(1f)) {
                     Text("Olilo Network Status", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                     Text(
-                        if (statusSeverity(summary.page.status) == 0) "All systems operational" else readableStatus(summary.page.status),
+                        if (statusSeverity(summary.page.status) == 0) "All systems operational" else readableStatus(
+                            summary.page.status
+                        ),
                         color = Color(0xFFCEC1D8),
                     )
                 }
@@ -891,7 +916,7 @@ private fun NoticesScreen(navController: NavHostController, viewModel: NoticesVi
         }
 
         LazyColumn(
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             val activeCount = state.activeIncidents.size + state.activeMaintenances.size
@@ -904,8 +929,10 @@ private fun NoticesScreen(navController: NavHostController, viewModel: NoticesVi
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     NoticeFilterChip(selected = state.selectedKind == null, label = "All") { viewModel.selectKind(null) }
-                    NoticeFilterChip(selected = state.selectedKind == NoticeKind.Incident, label = "Incident") { viewModel.selectKind(NoticeKind.Incident) }
-                    NoticeFilterChip(selected = state.selectedKind == NoticeKind.Maintenance, label = "Maintenance") { viewModel.selectKind(NoticeKind.Maintenance) }
+                    NoticeFilterChip(selected = state.selectedKind == NoticeKind.Incident, label = "Incident") { viewModel.selectKind(
+                        NoticeKind.Incident) }
+                    NoticeFilterChip(selected = state.selectedKind == NoticeKind.Maintenance, label = "Maintenance") { viewModel.selectKind(
+                        NoticeKind.Maintenance) }
                 }
             }
             item { SectionHeader("Notice History", filtered.size) }
@@ -1128,7 +1155,7 @@ private fun SettingsScreen(navController: NavHostController) {
     Column(Modifier.fillMaxSize()) {
         OliloTopBar(title = "Settings")
         LazyColumn(
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
@@ -1172,7 +1199,7 @@ private fun SettingsScreen(navController: NavHostController) {
                                 shape = RoundedCornerShape(8.dp),
                             )
                             .padding(horizontal = 12.dp, vertical = 6.dp),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        textAlign = TextAlign.Center,
                     )
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                         Spacer(Modifier.height(8.dp))
@@ -1271,7 +1298,7 @@ private fun NotificationSettingsScreen(navController: NavHostController) {
     Column(Modifier.fillMaxSize()) {
         OliloTopBar(title = "Status Updates", navController = navController)
         LazyColumn(
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
@@ -1412,7 +1439,7 @@ private fun SettingsToggleRow(
     showDivider: Boolean = true,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    androidx.compose.material3.ListItem(
+    ListItem(
         headlineContent = { Text(title, color = Color.White) },
         leadingContent = { Icon(icon, contentDescription = null, tint = oliloPurple) },
         trailingContent = {
@@ -1450,7 +1477,7 @@ private fun SettingsRow(
     logoResId: Int? = null,
     showDivider: Boolean = true,
 ) {
-    androidx.compose.material3.ListItem(
+    ListItem(
         headlineContent = { Text(title, color = Color.White) },
         leadingContent = {
             if (logoResId != null) {
@@ -1566,9 +1593,9 @@ private fun AboutPage(navController: NavHostController) {
             StatusCard {
                 Text(ABOUT_TEXT)
             }
-            Text("Olilo Status Contributors", style = MaterialTheme.typography.titleMedium, color = Color(0xFFCEC1D8))
+            Text("Olilo Status Contributors:", style = MaterialTheme.typography.titleMedium, color = Color(0xFFCEC1D8))
             StatusCard {
-                Text("Aydan Abrahams")
+                Text("Aydan Abrahams (Developer)")
             }
             Spacer(Modifier.height(44.dp))
             Image(

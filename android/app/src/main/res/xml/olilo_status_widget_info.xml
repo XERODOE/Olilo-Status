@@ -1,5 +1,5 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:configure="uk.co.olilo.status.OliloStatusWidgetConfigurationActivity"
+    android:configure="uk.co.olilo.status.widget.OliloStatusWidgetConfigurationActivity"
     android:description="@string/widget_description"
     android:initialLayout="@layout/olilo_status_widget"
     android:minWidth="250dp"

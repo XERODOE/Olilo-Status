@@ -1,4 +1,4 @@
-package uk.co.olilo.status
+package uk.co.olilo.status.widget
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -7,6 +7,10 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 import kotlinx.serialization.json.Json
+import uk.co.olilo.status.status.ComponentsResponse
+import uk.co.olilo.status.main.MainActivity
+import uk.co.olilo.status.R
+import uk.co.olilo.status.status.StatusComponent
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Locale
@@ -41,9 +45,17 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
             thread(name = "OliloStatusWidgetRefresh") {
                 val component = fetchWidgetComponent(sourceName)
                 val isOnline = component?.status?.isWidgetOnline() == true
-                val statusText = if (component == null) "Unavailable" else if (isOnline) "Online" else "Offline"
+                val statusText =
+                    if (component == null) "Unavailable" else if (isOnline) "Online" else "Offline"
                 val sourceText = component?.name ?: sourceName
-                updateWidget(context, appWidgetManager, appWidgetId, statusText, sourceText, isOnline)
+                updateWidget(
+                    context,
+                    appWidgetManager,
+                    appWidgetId,
+                    statusText,
+                    sourceText,
+                    isOnline
+                )
             }
         }
 

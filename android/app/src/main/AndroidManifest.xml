@@ -9,7 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name=".main.MainActivity"
             android:exported="true"
             android:launchMode="singleTop">
             <intent-filter>
@@ -18,14 +18,14 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".OliloStatusWidgetConfigurationActivity"
+            android:name=".widget.OliloStatusWidgetConfigurationActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
         <receiver
-            android:name=".OliloStatusWidgetProvider"
+            android:name=".widget.OliloStatusWidgetProvider"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

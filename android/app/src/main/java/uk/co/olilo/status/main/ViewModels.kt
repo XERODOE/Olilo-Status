@@ -1,4 +1,4 @@
-package uk.co.olilo.status
+package uk.co.olilo.status.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +9,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uk.co.olilo.status.status.NoticeKind
+import uk.co.olilo.status.status.NoticesScreenState
+import uk.co.olilo.status.status.StatusRepository
+import uk.co.olilo.status.status.StatusScreenState
 
 class StatusViewModel(
     private val repository: StatusRepository = StatusRepository(),

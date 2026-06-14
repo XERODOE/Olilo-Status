@@ -14,7 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import uk.co.olilo.status.MainActivity
+import uk.co.olilo.status.main.MainActivity
 import uk.co.olilo.status.R
 
 /**

@@ -1,4 +1,4 @@
-package uk.co.olilo.status
+package uk.co.olilo.status.status
 
 import androidx.compose.ui.graphics.Color
 import java.time.Instant
