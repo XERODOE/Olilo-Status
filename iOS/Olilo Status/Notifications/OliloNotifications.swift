@@ -27,6 +27,7 @@
 //  registers itself with the backend automatically.
 //
 
+import Combine
 import Foundation
 import UIKit
 import UserNotifications

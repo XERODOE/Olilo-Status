@@ -10,6 +10,14 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section("Notifications") {
+                    NavigationLink {
+                        NotificationSettingsView()
+                    } label: {
+                        SettingsRowLabel(title: "Status Updates", systemImage: "bell.badge")
+                    }
+                }
+
                 Section("Need Help?") {
                     NavigationLink {
                         ContactUsView()

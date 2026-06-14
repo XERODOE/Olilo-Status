@@ -22,32 +22,63 @@ struct NotificationSettingsView: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Enable notifications", isOn: enabledBinding)
+                Toggle(isOn: enabledBinding) {
+                    notificationToggleLabel("Enable notifications")
+                }
+            } header: {
+                Text("Notifications")
             } footer: {
-                Text("Get push alerts about the Olilo network on this device.")
+                Text("Get notified about Olilo Network updates on this device.")
             }
 
             if manager.isEnabled {
-                Section("Alert me about") {
-                    Toggle("Incidents", isOn: prefBinding(\.incidents))
-                    Toggle("Scheduled maintenance", isOn: prefBinding(\.maintenance))
-                    Toggle("Component status changes", isOn: prefBinding(\.componentAlerts))
+                Section {
+                    Toggle(isOn: prefBinding(\.incidents)) {
+                        notificationToggleLabel("Incidents")
+                    }
+                    Toggle(isOn: prefBinding(\.maintenance)) {
+                        notificationToggleLabel("Scheduled maintenance")
+                    }
+                    Toggle(isOn: prefBinding(\.componentAlerts)) {
+                        notificationToggleLabel("Component status changes")
+                    }
+                } header: {
+                    Text("Notify me about")
+                        .foregroundStyle(Color.secondary)
+                } footer: {
+                    Text("Choose which notices you get notified about.")
                 }
 
                 if manager.preferences.componentAlerts {
                     Section {
                         ForEach(networks, id: \.self) { network in
-                            Toggle(network, isOn: networkBinding(network))
+                            Toggle(isOn: networkBinding(network)) {
+                                notificationToggleLabel(network)
+                            }
                         }
                     } header: {
                         Text("Networks")
+                            .foregroundStyle(Color.secondary)
                     } footer: {
-                        Text("Choose which networks trigger component alerts. With none selected you'll get alerts for all networks.")
+                        Text("Choose which networks you get notifed about. With none selected you'll get alerts for all networks.")
                     }
                 }
             }
         }
-        .navigationTitle("Notifications")
+        .scrollContentBackground(.hidden)
+        .background(OliloDarkGradientBackground())
+        .tint(Color.oliloPurple)
+        .navigationTitle("Status Updates")
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                OliloToolbarLogo()
+            }
+        }
+    }
+
+    private func notificationToggleLabel(_ title: String) -> some View {
+        Text(title)
+            .foregroundStyle(.white)
     }
 
     // MARK: - Bindings
