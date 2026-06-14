@@ -1,26 +1,51 @@
+import Combine
 import SwiftUI
 
 extension Color {
     static let oliloPurple = Color(red: 0.70, green: 0.28, blue: 1.0)
 }
 
+enum AppTab: Hashable {
+    case status
+    case notices
+    case settings
+}
+
+@MainActor
+final class AppRouter: ObservableObject {
+    static let shared = AppRouter()
+
+    @Published var selectedTab: AppTab = .status
+
+    private init() {}
+
+    func openNotices() {
+        selectedTab = .notices
+    }
+}
+
 struct ContentView: View {
+    @StateObject private var router = AppRouter.shared
+
     var body: some View {
-        TabView {
+        TabView(selection: $router.selectedTab) {
             StatusView()
                 .tabItem {
                     Label("Status", systemImage: "waveform.path.ecg")
                 }
+                .tag(AppTab.status)
 
             NoticesView()
                 .tabItem {
                     Label("Notices", systemImage: "bell.badge")
                 }
+                .tag(AppTab.notices)
 
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")
                 }
+                .tag(AppTab.settings)
         }
         .tint(Color.oliloPurple)
         .preferredColorScheme(.dark)

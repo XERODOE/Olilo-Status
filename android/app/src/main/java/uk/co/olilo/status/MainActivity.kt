@@ -2,6 +2,7 @@ package uk.co.olilo.status
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -82,6 +83,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -115,15 +117,31 @@ import uk.co.olilo.status.notifications.NotificationStore
 import uk.co.olilo.status.notifications.OliloNotifications
 
 class MainActivity : ComponentActivity() {
+    private var launchRequest by mutableStateOf(LaunchRequest(Route.Status.path, 0))
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        launchRequest = launchRequest.copy(route = intent.requestedRoute())
         setContent {
             OliloStatusTheme {
-                OliloApp()
+                OliloApp(launchRequest)
             }
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        launchRequest = LaunchRequest(intent.requestedRoute(), launchRequest.nonce + 1)
+    }
+
+    companion object {
+        const val NOTIFICATION_TARGET_TAB = "uk.co.olilo.status.NOTIFICATION_TARGET_TAB"
+        const val TAB_NOTICES = "notices"
+    }
 }
+
+private data class LaunchRequest(val route: String, val nonce: Int)
 
 private enum class Route(val path: String, val label: String, val icon: ImageVector) {
     Status("status", "Status", Icons.Filled.Dashboard),
@@ -131,11 +149,25 @@ private enum class Route(val path: String, val label: String, val icon: ImageVec
     Settings("settings", "Settings", Icons.Filled.Settings),
 }
 
+private fun Intent?.requestedRoute(): String = when (this?.getStringExtra(MainActivity.NOTIFICATION_TARGET_TAB)) {
+    MainActivity.TAB_NOTICES -> Route.Notices.path
+    else -> Route.Status.path
+}
+
 @Composable
-private fun OliloApp() {
+private fun OliloApp(launchRequest: LaunchRequest) {
     val navController = rememberNavController()
     val backStack by navController.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
+
+    LaunchedEffect(launchRequest) {
+        if (currentRoute != launchRequest.route) {
+            navController.navigate(launchRequest.route) {
+                popUpTo(Route.Status.path)
+                launchSingleTop = true
+            }
+        }
+    }
 
     GradientBackground {
         Scaffold(

@@ -239,18 +239,15 @@ final class PushAppDelegate: NSObject, UIApplicationDelegate, UNUserNotification
         completionHandler([.banner, .sound, .list])
     }
 
-    /// Handle a tapped notification. The backend payload carries
-    /// `{ type, incidentId, url }` in `userInfo` for deep-linking.
+    /// Handle a tapped notification by opening the in-app notices page.
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        let info = response.notification.request.content.userInfo
-        if let urlString = info["url"] as? String, let url = URL(string: urlString) {
-            // Hook for deep-linking; for now open the status page in-app/Safari.
-            Task { @MainActor in UIApplication.shared.open(url) }
+        Task { @MainActor in
+            AppRouter.shared.openNotices()
+            completionHandler()
         }
-        completionHandler()
     }
 }

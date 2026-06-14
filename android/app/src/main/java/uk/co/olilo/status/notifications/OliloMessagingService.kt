@@ -35,18 +35,17 @@ class OliloMessagingService : FirebaseMessagingService() {
         // Prefer the notification block; fall back to data-only payloads.
         val title = message.notification?.title ?: message.data["title"] ?: getString(R.string.app_name)
         val body = message.notification?.body ?: message.data["body"].orEmpty()
-        val url = message.data["url"]
 
         if (NotificationManagerCompat.from(this).areNotificationsEnabled()) {
-            showNotification(title, body, url)
+            showNotification(title, body)
         }
     }
 
     @RequiresPermission(android.Manifest.permission.POST_NOTIFICATIONS)
-    private fun showNotification(title: String, body: String, url: String?) {
+    private fun showNotification(title: String, body: String) {
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            url?.let { putExtra("url", it) }
+            putExtra(MainActivity.NOTIFICATION_TARGET_TAB, MainActivity.TAB_NOTICES)
         }
         val pending = PendingIntent.getActivity(
             this,
