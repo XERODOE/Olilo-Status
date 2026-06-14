@@ -164,7 +164,7 @@ private fun OliloApp() {
                 composable(Route.Notices.path) { NoticesScreen(navController) }
                 composable(Route.Settings.path) { SettingsScreen(navController) }
                 composable("notification-settings") { NotificationSettingsScreen(navController) }
-                composable("about") { TextPage(navController, "About", aboutText) }
+                composable("about") { AboutPage(navController) }
                 composable("contact") { ContactUsPage(navController) }
                 composable("web/{title}/{url}") { entry ->
                     WebPage(
@@ -1537,9 +1537,9 @@ private fun ContactUsPage(navController: NavHostController) {
 }
 
 @Composable
-private fun TextPage(navController: NavHostController, title: String, body: String) {
+private fun AboutPage(navController: NavHostController) {
     Column(Modifier.fillMaxSize()) {
-        OliloTopBar(title = title, navController = navController)
+        OliloTopBar(title = "About", navController = navController)
         Column(
             modifier = Modifier
                 .verticalScroll(rememberScrollState())
@@ -1549,7 +1549,11 @@ private fun TextPage(navController: NavHostController, title: String, body: Stri
         ) {
             Text("About this application:", style = MaterialTheme.typography.titleMedium, color = Color(0xFFCEC1D8))
             StatusCard {
-                Text(body)
+                Text(aboutText)
+            }
+            Text("Olilo Status Contributors", style = MaterialTheme.typography.titleMedium, color = Color(0xFFCEC1D8))
+            StatusCard {
+                Text("Aydan Abrahams")
             }
             Spacer(Modifier.height(44.dp))
             Image(
