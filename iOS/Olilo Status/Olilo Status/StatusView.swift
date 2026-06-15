@@ -21,7 +21,7 @@ struct Maintenance: Identifiable, Decodable {
     let name: String
     let status: String
     let start: Date?
-    let duration: String?
+    let duration: Int?
     let url: URL?
     let updatedAt: Date?
 }
