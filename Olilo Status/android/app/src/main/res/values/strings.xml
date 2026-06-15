@@ -1,4 +1,0 @@
-<resources>
-    <string name="app_name">Olilo Status</string>
-    <string name="widget_description">Shows whether the selected Olilo network source is online.</string>
-</resources>

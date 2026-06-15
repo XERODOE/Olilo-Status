@@ -1,0 +1,28 @@
+{
+  "name": "olilo-status-notifications",
+  "version": "0.1.0",
+  "description": "Push notification backend for the Olilo Status app. Polls the Olilo status page and delivers incident, maintenance and component alerts to iOS (APNs) and Android (FCM) devices.",
+  "type": "module",
+  "author": "Aydan Abrahams <me@aydan.co.uk>",
+  "license": "GPL-3.0-or-later",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "migrate": "node src/db/migrate.js",
+    "cli": "node src/cli.js"
+  },
+  "bin": {
+    "olilo-notify": "src/cli.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "firebase-admin": "^14.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.21.0",
+    "zod": "^4.4.3"
+  }
+}

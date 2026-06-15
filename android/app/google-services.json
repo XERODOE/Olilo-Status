@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "636732229257",
+    "project_id": "olilo-status",
+    "storage_bucket": "olilo-status.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:636732229257:android:5bff22474b6370f9bda858",
+        "android_client_info": {
+          "package_name": "uk.co.olilo.status"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0rJg7aO0X41bWR3InnJHFMUGQIhSrUZg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
