@@ -35,7 +35,7 @@ data class Maintenance(
     val name: String,
     val status: String,
     val start: String? = null,
-    val duration: String? = null,
+    val duration: Int? = null,
     val url: String? = null,
     @SerialName("updatedAt") val updatedAt: String? = null,
 )
