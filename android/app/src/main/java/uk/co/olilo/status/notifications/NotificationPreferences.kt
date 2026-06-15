@@ -23,28 +23,35 @@ object NotificationStore {
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    /** Loads saved notification preferences, falling back to defaults when absent or invalid. */
     fun preferences(context: Context): NotificationPreferences {
         val raw = prefs(context).getString(KEY_PREFERENCES, null) ?: return NotificationPreferences()
         return runCatching { json.decodeFromString<NotificationPreferences>(raw) }
             .getOrDefault(NotificationPreferences())
     }
 
+    /** Persists the current notification preferences. */
     fun savePreferences(context: Context, preferences: NotificationPreferences) {
         prefs(context).edit().putString(KEY_PREFERENCES, json.encodeToString(preferences)).apply()
     }
 
+    /** Returns whether the user has opted into notifications in-app. */
     fun isEnabled(context: Context): Boolean = prefs(context).getBoolean(KEY_ENABLED, false)
 
+    /** Persists the notification opt-in flag. */
     fun setEnabled(context: Context, enabled: Boolean) {
         prefs(context).edit().putBoolean(KEY_ENABLED, enabled).apply()
     }
 
+    /** Loads the last registered FCM token, if available. */
     fun token(context: Context): String? = prefs(context).getString(KEY_TOKEN, null)
 
+    /** Persists the latest FCM token. */
     fun saveToken(context: Context, token: String) {
         prefs(context).edit().putString(KEY_TOKEN, token).apply()
     }
 
+    /** Opens the shared preferences file used by notification storage. */
     private fun prefs(context: Context) =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 }

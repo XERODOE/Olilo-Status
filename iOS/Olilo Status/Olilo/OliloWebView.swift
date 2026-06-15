@@ -27,11 +27,13 @@ struct OliloWebViewSheet: View {
 private struct OliloWebView: UIViewRepresentable {
     let url: URL
 
+    /// Creates the backing web view and loads the requested URL.
     func makeUIView(context: Context) -> WKWebView {
         let webView = WKWebView()
         webView.load(URLRequest(url: url))
         return webView
     }
 
+    /// Leaves the loaded page unchanged after SwiftUI state updates.
     func updateUIView(_ uiView: WKWebView, context: Context) {}
 }

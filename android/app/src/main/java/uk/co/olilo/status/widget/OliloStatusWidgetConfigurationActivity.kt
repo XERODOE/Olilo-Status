@@ -43,6 +43,7 @@ import uk.co.olilo.status.status.oliloPurple
 class OliloStatusWidgetConfigurationActivity : ComponentActivity() {
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
+    /** Initializes widget configuration and saves the selected source before finishing. */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setResult(RESULT_CANCELED)
@@ -77,6 +78,7 @@ class OliloStatusWidgetConfigurationActivity : ComponentActivity() {
     }
 }
 
+/** Renders the source picker used while adding a widget. */
 @Composable
 private fun WidgetConfigurationScreen(onSourceSelected: (String) -> Unit) {
     MaterialTheme(

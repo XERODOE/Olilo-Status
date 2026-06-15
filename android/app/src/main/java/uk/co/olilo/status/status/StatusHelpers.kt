@@ -12,6 +12,7 @@ val oliloBackgroundTop = Color(0xFF050108)
 val oliloBackgroundMid = Color(0xFF210A3D)
 val oliloBackgroundBottom = Color(0xFF4D147A)
 
+/** Maps backend status strings to numeric severity for sorting and summaries. */
 fun statusSeverity(status: String): Int = when (status.uppercase(Locale.UK)) {
     "UP", "OPERATIONAL", "RESOLVED", "COMPLETED" -> 0
     "UNDERMAINTENANCE", "MONITORING", "NOTSTARTEDYET" -> 1
@@ -21,6 +22,7 @@ fun statusSeverity(status: String): Int = when (status.uppercase(Locale.UK)) {
     else -> 2
 }
 
+/** Chooses the display color associated with a backend status string. */
 fun statusColor(status: String): Color = when (status.uppercase(Locale.UK)) {
     "UP", "OPERATIONAL", "RESOLVED", "COMPLETED" -> oliloPurple
     "UNDERMAINTENANCE", "MONITORING", "NOTSTARTEDYET" -> Color(0xFF64B5F6)
@@ -30,6 +32,7 @@ fun statusColor(status: String): Color = when (status.uppercase(Locale.UK)) {
     else -> Color(0xFFBDB3C7)
 }
 
+/** Converts backend status identifiers into readable user-facing text. */
 fun readableStatus(status: String): String = when (status.uppercase(Locale.UK)) {
     "UP" -> "Up"
     "OPERATIONAL" -> "Operational"
@@ -48,6 +51,7 @@ fun readableStatus(status: String): String = when (status.uppercase(Locale.UK)) 
         .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.UK) else it.toString() }
 }
 
+/** Formats an ISO-8601 date from the status API for the local timezone. */
 fun formatRemoteDate(value: String?): String? {
     if (value.isNullOrBlank()) return null
     return runCatching {
@@ -56,12 +60,14 @@ fun formatRemoteDate(value: String?): String? {
     }.getOrElse { value }
 }
 
+/** Formats an epoch millisecond timestamp as a local time string. */
 fun formatTime(millis: Long?): String? {
     if (millis == null) return null
     val formatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
     return Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).format(formatter)
 }
 
+/** Groups raw status components into the app's display categories. */
 fun groupedComponents(components: List<StatusComponent>): List<StatusComponentGroup> {
     return componentCategories.mapNotNull { category ->
         val includedIds = mutableSetOf<String>()

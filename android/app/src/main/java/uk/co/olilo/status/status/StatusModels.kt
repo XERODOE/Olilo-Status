@@ -91,6 +91,7 @@ enum class NoticeKind(val label: String) {
     Notice("Notice");
 
     companion object {
+        /** Converts a backend notice type label into a typed notice kind. */
         fun from(value: String?): NoticeKind = entries.firstOrNull { it.label == value } ?: Notice
     }
 }

@@ -81,6 +81,7 @@ struct NotificationSettingsView: View {
         }
     }
 
+    /// Builds a consistently styled label for notification toggles.
     private func notificationToggleLabel(_ title: String) -> some View {
         Text(title)
             .foregroundStyle(.white)
@@ -100,6 +101,7 @@ struct NotificationSettingsView: View {
         )
     }
 
+    /// Creates a binding that writes a boolean preference back through the push manager.
     private func prefBinding(_ keyPath: WritableKeyPath<NotificationPreferences, Bool>) -> Binding<Bool> {
         Binding(
             get: { manager.preferences[keyPath: keyPath] },
@@ -111,6 +113,7 @@ struct NotificationSettingsView: View {
         )
     }
 
+    /// Creates a binding that adds or removes a network from component alert preferences.
     private func networkBinding(_ network: String) -> Binding<Bool> {
         Binding(
             get: { manager.preferences.networks.contains(network) },

@@ -78,6 +78,7 @@ enum StatusComponentCategory: String, CaseIterable {
         }
     }
 
+    /// Selects the components that belong in this category, preserving the configured parent-child order.
     func components(from components: [StatusComponent]) -> [StatusComponent] {
         var includedIDs = Set<String>()
         var result: [StatusComponent] = []
@@ -99,6 +100,7 @@ enum StatusComponentCategory: String, CaseIterable {
         return result
     }
 
+    /// Appends a component once while tracking IDs already included in the category.
     private func append(_ component: StatusComponent, to result: inout [StatusComponent], includedIDs: inout Set<String>) {
         guard includedIDs.insert(component.id).inserted else { return }
         result.append(component)
@@ -130,6 +132,7 @@ struct StatusComponentDisplayPreferences: Codable, Equatable {
 
     static let storageKey = "statusComponentDisplayPreferences"
 
+    /// Loads saved component display preferences, falling back to defaults when unavailable.
     static func load() -> StatusComponentDisplayPreferences {
         guard let data = UserDefaults.standard.data(forKey: storageKey) else {
             return StatusComponentDisplayPreferences()
@@ -137,11 +140,13 @@ struct StatusComponentDisplayPreferences: Codable, Equatable {
         return (try? JSONDecoder().decode(StatusComponentDisplayPreferences.self, from: data)) ?? StatusComponentDisplayPreferences()
     }
 
+    /// Persists component display preferences in user defaults.
     func save() {
         guard let data = try? JSONEncoder().encode(self) else { return }
         UserDefaults.standard.set(data, forKey: Self.storageKey)
     }
 
+    /// Applies the saved component order while keeping any new components at the end.
     func orderedComponents(from components: [StatusComponent]) -> [StatusComponent] {
         let componentsByID = Dictionary(uniqueKeysWithValues: components.map { ($0.id, $0) })
         var ordered = orderedComponentIDs.compactMap { componentsByID[$0] }
@@ -150,6 +155,7 @@ struct StatusComponentDisplayPreferences: Codable, Equatable {
         return ordered
     }
 
+    /// Filters groups down to visible components and drops empty groups.
     func visibleGroups(from groups: [StatusComponentGroup]) -> [StatusComponentGroup] {
         groups.compactMap { group in
             let visibleComponents = orderedComponents(from: group.allComponents).filter { !hiddenComponentIDs.contains($0.id) }
@@ -164,10 +170,12 @@ struct StatusComponentDisplayPreferences: Codable, Equatable {
         }
     }
 
+    /// Returns whether the component is currently shown in the status UI.
     func isComponentVisible(_ component: StatusComponent) -> Bool {
         !hiddenComponentIDs.contains(component.id)
     }
 
+    /// Updates the hidden component set for a single component.
     mutating func setComponent(_ component: StatusComponent, isVisible: Bool) {
         if isVisible {
             hiddenComponentIDs.remove(component.id)
@@ -176,6 +184,7 @@ struct StatusComponentDisplayPreferences: Codable, Equatable {
         }
     }
 
+    /// Stores a drag-reordered component sequence for the specified group.
     mutating func moveComponents(from source: IndexSet, to destination: Int, in group: StatusComponentGroup) {
         let groupComponentIDs = Set(group.allComponents.map(\.id))
         var orderedIDs = orderedComponents(from: group.allComponents).map(\.id)
@@ -226,10 +235,12 @@ final class StatusViewModel: ObservableObject {
         }
     }
 
+    /// Returns component groups after applying the user's display preferences.
     func visibleComponentGroups(using preferences: StatusComponentDisplayPreferences) -> [StatusComponentGroup] {
         preferences.visibleGroups(from: componentGroups)
     }
 
+    /// Returns affected components that are not hidden by display preferences.
     func visibleAffectedComponents(using preferences: StatusComponentDisplayPreferences) -> [StatusComponent] {
         affectedComponents.filter { component in
             !preferences.hiddenComponentIDs.contains(component.id)
@@ -238,6 +249,7 @@ final class StatusViewModel: ObservableObject {
 
     private let api = StatusAPI()
 
+    /// Refreshes summary and component data, updating published state for the status screen.
     func refresh() async {
         isLoading = true
         errorMessage = nil
@@ -491,6 +503,7 @@ private struct ComponentDisplayEditor: View {
         .tint(Color.oliloPurple)
     }
 
+    /// Creates a binding for the component visibility toggle in the editor.
     private func visibilityBinding(for component: StatusComponent) -> Binding<Bool> {
         Binding {
             preferences.isComponentVisible(component)
@@ -499,6 +512,7 @@ private struct ComponentDisplayEditor: View {
         }
     }
 
+    /// Builds the secondary detail line for a component in the editor.
     private func componentDetail(for component: StatusComponent) -> String {
         var details = [readableStatus(component.status)]
         if let groupName = component.group?.name, !groupName.isEmpty {
@@ -691,6 +705,7 @@ private struct PulsingStatusIcon: View {
         }
     }
 
+    /// Restarts the pulse animation unless the user has reduced motion enabled.
     private func startPulse() {
         guard !reduceMotion else {
             isPulsing = false
@@ -927,6 +942,7 @@ private struct ComponentRow: View {
 private struct StatusCard<Content: View>: View {
     private let content: Content
 
+    /// Captures the caller's content for rendering inside the shared card style.
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
@@ -1040,6 +1056,7 @@ private struct DetailGrid: View {
     }
 }
 
+/// Maps backend status strings to numeric severity for sorting and summaries.
 func statusSeverity(_ status: String) -> Int {
     switch status.uppercased() {
     case "UP", "OPERATIONAL", "RESOLVED", "COMPLETED":
@@ -1057,10 +1074,12 @@ func statusSeverity(_ status: String) -> Int {
     }
 }
 
+/// Sorts status strings from least to most severe.
 func statusSeveritySort(_ lhs: String, _ rhs: String) -> Bool {
     statusSeverity(lhs) < statusSeverity(rhs)
 }
 
+/// Chooses the display color associated with a backend status string.
 func statusColor(_ status: String) -> Color {
     switch status.uppercased() {
     case "UP", "OPERATIONAL", "RESOLVED", "COMPLETED":
@@ -1078,6 +1097,7 @@ func statusColor(_ status: String) -> Color {
     }
 }
 
+/// Converts backend status identifiers into readable user-facing text.
 func readableStatus(_ status: String) -> String {
     let replacements = [
         "UP": "Up",
@@ -1116,6 +1136,7 @@ struct StatusAPI {
         let components: [StatusComponent]
     }
 
+    /// Downloads and decodes the status page summary payload.
     func fetchSummary() async throws -> StatusPageSummary {
         let url = base.appending(path: "v3/summary.json")
         let (data, response) = try await URLSession.shared.data(from: url)
@@ -1127,6 +1148,7 @@ struct StatusAPI {
         return try decoder.decode(StatusPageSummary.self, from: data)
     }
 
+    /// Downloads and decodes the full component list from the status API.
     func fetchComponents() async throws -> [StatusComponent] {
         let url = base.appending(path: "v3/components.json")
         let (data, response) = try await URLSession.shared.data(from: url)

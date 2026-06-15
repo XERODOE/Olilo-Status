@@ -55,6 +55,7 @@ final class NoticesViewModel: ObservableObject {
         return notices.filter { $0.kind == selectedKind }
     }
 
+    /// Refreshes active notices and historical feed entries for the notices screen.
     func refresh() async {
         isLoading = true
         errorMessage = nil
@@ -408,6 +409,7 @@ private struct NoticeDetailGrid: View {
 private struct NoticeCard<Content: View>: View {
     private let content: Content
 
+    /// Captures the caller's content for rendering inside the shared notice card style.
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
@@ -431,6 +433,7 @@ private struct NoticeCard<Content: View>: View {
 private struct NoticesAPI {
     private let feedURL = URL(string: "https://status.olilo.co.uk/default/history.atom")!
 
+    /// Downloads the Atom notice history feed and parses it into status notices.
     func fetchNoticeHistory() async throws -> [StatusNotice] {
         let (data, response) = try await URLSession.shared.data(from: feedURL)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
@@ -455,6 +458,7 @@ private final class AtomNoticeParser: NSObject, XMLParserDelegate {
         var content = ""
     }
 
+    /// Parses Atom XML data and returns notices sorted newest first.
     func parse(_ data: Data) throws -> [StatusNotice] {
         let parser = XMLParser(data: data)
         parser.delegate = self
@@ -468,6 +472,7 @@ private final class AtomNoticeParser: NSObject, XMLParserDelegate {
         }
     }
 
+    /// Tracks entry boundaries and captures entry links when XML elements start.
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String: String] = [:]) {
         currentElement = elementName
         currentText = ""
@@ -478,16 +483,19 @@ private final class AtomNoticeParser: NSObject, XMLParserDelegate {
         }
     }
 
+    /// Accumulates text emitted for the current XML element.
     func parser(_ parser: XMLParser, foundCharacters string: String) {
         currentText += string
     }
 
+    /// Appends CDATA content to the current element text when present.
     func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
         if let text = String(data: CDATABlock, encoding: .utf8) {
             currentText += text
         }
     }
 
+    /// Commits parsed element text and finalizes entries when their XML closes.
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         guard currentEntry != nil else { return }
         let text = currentText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -516,6 +524,7 @@ private final class AtomNoticeParser: NSObject, XMLParserDelegate {
         currentElement = ""
     }
 
+    /// Converts a parsed Atom entry into the app's notice model.
     private func makeNotice(from entry: Entry) -> StatusNotice {
         let text = entry.content
             .htmlToPlainText()
@@ -544,6 +553,7 @@ private final class AtomNoticeParser: NSObject, XMLParserDelegate {
         )
     }
 
+    /// Extracts the value following a known label in the flattened notice text.
     private func value(after label: String, in text: String) -> String? {
         guard let labelRange = text.range(of: label) else { return nil }
         let tail = text[labelRange.upperBound...]
@@ -562,6 +572,7 @@ private final class AtomNoticeParser: NSObject, XMLParserDelegate {
         return value.isEmpty ? nil : value
     }
 
+    /// Extracts status update rows from the notice HTML content.
     private func parseUpdates(fromHTML html: String) -> [StatusNotice.Update] {
         let pattern = #"<p>\s*<small>.*?</small>\s*<br\s*/?>\s*<strong>(.*?)</strong>\s*-\s*(.*?)</p>"#
         guard let regex = try? NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]) else { return [] }
@@ -597,6 +608,7 @@ private extension DateFormatter {
 }
 
 private extension String {
+    /// Removes lightweight HTML tags while preserving readable paragraph breaks.
     func htmlToPlainText() -> String {
         var text = self
         text = text.replacingOccurrences(of: "<br />", with: " ")
@@ -610,6 +622,7 @@ private extension String {
         return regex.stringByReplacingMatches(in: text, range: range, withTemplate: "")
     }
 
+    /// Trims blank lines and joins remaining lines with single newlines.
     func normalizingWhitespace() -> String {
         components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -617,6 +630,7 @@ private extension String {
             .joined(separator: "\n")
     }
 
+    /// Decodes HTML entities using Foundation's attributed string importer.
     func decodingHTMLEntities() -> String {
         guard let data = data(using: .utf8) else { return self }
         let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [

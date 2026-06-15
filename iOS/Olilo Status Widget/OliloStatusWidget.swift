@@ -46,14 +46,17 @@ struct OliloStatusEntry: TimelineEntry {
 }
 
 struct OliloStatusProvider: AppIntentTimelineProvider {
+    /// Supplies static placeholder content for the widget gallery.
     func placeholder(in context: Context) -> OliloStatusEntry {
         OliloStatusEntry(date: .now, source: .openreach, status: "OPERATIONAL")
     }
 
+    /// Provides a quick preview entry using the selected configuration.
     func snapshot(for configuration: OliloStatusWidgetConfiguration, in context: Context) async -> OliloStatusEntry {
         OliloStatusEntry(date: .now, source: configuration.source, status: "OPERATIONAL")
     }
 
+    /// Builds the widget timeline and schedules the next status refresh.
     func timeline(for configuration: OliloStatusWidgetConfiguration, in context: Context) async -> Timeline<OliloStatusEntry> {
         let status = await fetchNetworkStatus(for: configuration.source)
         let entry = OliloStatusEntry(date: .now, source: configuration.source, status: status)
@@ -61,6 +64,7 @@ struct OliloStatusProvider: AppIntentTimelineProvider {
         return Timeline(entries: [entry], policy: .after(refreshDate))
     }
 
+    /// Fetches the selected network component status, returning UNKNOWN on any failure.
     private func fetchNetworkStatus(for source: WidgetStatusSource) async -> String {
         guard let url = URL(string: "https://status.olilo.co.uk/v3/components.json") else {
             return "UNKNOWN"
@@ -186,6 +190,7 @@ struct OliloStatusWidgetView: View {
 }
 
 private extension View {
+    /// Applies color inversion only when the widget needs a dark-mode logo treatment.
     @ViewBuilder
     func colorInvertIfNeeded(_ shouldInvert: Bool) -> some View {
         if shouldInvert {

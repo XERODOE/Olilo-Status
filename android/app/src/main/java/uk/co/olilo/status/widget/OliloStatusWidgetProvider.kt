@@ -17,10 +17,12 @@ import java.util.Locale
 import kotlin.concurrent.thread
 
 class OliloStatusWidgetProvider : AppWidgetProvider() {
+    /** Refreshes every widget instance when Android requests an update. */
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         appWidgetIds.forEach { appWidgetId -> refreshWidget(context, appWidgetManager, appWidgetId) }
     }
 
+    /** Removes stored configuration for widget instances that were deleted. */
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         val editor = context.getSharedPreferences(WIDGET_PREFERENCES_NAME, Context.MODE_PRIVATE).edit()
         appWidgetIds.forEach { appWidgetId -> editor.remove(sourceKey(appWidgetId)) }
@@ -31,6 +33,7 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
         val sourceNames = listOf("Openreach", "CityFibre", "Freedom Fibre")
         private val json = Json { ignoreUnknownKeys = true }
 
+        /** Persists the selected component source for a widget instance. */
         fun saveSource(context: Context, appWidgetId: Int, sourceName: String) {
             context.getSharedPreferences(WIDGET_PREFERENCES_NAME, Context.MODE_PRIVATE)
                 .edit()
@@ -38,6 +41,7 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
                 .apply()
         }
 
+        /** Loads the configured source, fetches its status, and updates the widget UI. */
         fun refreshWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
             val sourceName = loadSource(context, appWidgetId)
             updateWidget(context, appWidgetManager, appWidgetId, "Loading", sourceName, null)
@@ -59,6 +63,7 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
             }
         }
 
+        /** Writes the current status values into the widget RemoteViews. */
         private fun updateWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
@@ -88,6 +93,7 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
+        /** Builds the pending intent that opens the main app from the widget. */
         private fun launchAppIntent(context: Context): PendingIntent {
             val intent = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -100,6 +106,7 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
             )
         }
 
+        /** Fetches the configured component for a widget, returning null on failures. */
         private fun fetchWidgetComponent(sourceName: String): StatusComponent? = runCatching {
             val connection = (URL(COMPONENTS_URL).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 15_000
@@ -116,14 +123,17 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
             }
         }.getOrNull()
 
+        /** Loads a widget's selected source, falling back to the default source. */
         private fun loadSource(context: Context, appWidgetId: Int): String =
             context.getSharedPreferences(WIDGET_PREFERENCES_NAME, Context.MODE_PRIVATE)
                 .getString(sourceKey(appWidgetId), null)
                 ?.takeIf { it in sourceNames }
                 ?: sourceNames.first()
 
+        /** Builds the preference key for a widget source selection. */
         private fun sourceKey(appWidgetId: Int): String = "source_$appWidgetId"
 
+        /** Returns whether a backend status should be displayed as online in the widget. */
         private fun String.isWidgetOnline(): Boolean = uppercase(Locale.UK).let { status ->
             status == "UP" || status == "OPERATIONAL"
         }

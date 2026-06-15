@@ -91,6 +91,7 @@ object OliloNotifications {
     @Serializable
     private data class PlatformBody(val platform: String = "android")
 
+    /** Sends a JSON request to the notification backend and fails on non-2xx responses. */
     private suspend inline fun <reified T> send(method: String, path: String, body: T) =
         withContext(Dispatchers.IO) {
             val connection = (URL("$BASE_URL/$path").openConnection() as HttpURLConnection).apply {
@@ -118,6 +119,7 @@ object OliloNotifications {
             .addOnFailureListener { error -> cont.resumeWithException(error) }
     }
 
+    /** Returns the installed app version reported to the notification backend. */
     private fun appVersion(context: Context): String =
         runCatching {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"

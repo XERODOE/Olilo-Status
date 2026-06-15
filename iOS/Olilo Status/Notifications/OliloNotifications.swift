@@ -51,6 +51,7 @@ struct NotificationPreferences: Codable, Equatable {
 
     static let storageKey = "notificationPreferences"
 
+    /// Loads saved preferences from user defaults, falling back to defaults when absent or invalid.
     static func load() -> NotificationPreferences {
         guard let data = UserDefaults.standard.data(forKey: storageKey),
               let prefs = try? JSONDecoder().decode(NotificationPreferences.self, from: data)
@@ -58,6 +59,7 @@ struct NotificationPreferences: Codable, Equatable {
         return prefs
     }
 
+    /// Persists the current preference set in user defaults.
     func save() {
         guard let data = try? JSONEncoder().encode(self) else { return }
         UserDefaults.standard.set(data, forKey: Self.storageKey)
@@ -87,6 +89,7 @@ struct NotificationsAPI {
         let platform = "ios"
     }
 
+    /// Registers an APNs token with the backend using the current device preferences.
     func register(token: String, preferences: NotificationPreferences) async throws {
         let body = RegisterBody(
             token: token,
@@ -97,6 +100,7 @@ struct NotificationsAPI {
         try await send("POST", path: "api/devices/register", body: body)
     }
 
+    /// Sends updated notification preferences for an already registered device token.
     func updatePreferences(token: String, preferences: NotificationPreferences) async throws {
         try await send(
             "PATCH",
@@ -105,10 +109,12 @@ struct NotificationsAPI {
         )
     }
 
+    /// Removes an APNs token from the backend delivery list.
     func unregister(token: String) async throws {
         try await send("DELETE", path: "api/devices/\(token)", body: PlatformBody())
     }
 
+    /// Encodes and sends a JSON request, failing on non-success HTTP responses.
     private func send<Body: Encodable>(_ method: String, path: String, body: Body) async throws {
         var request = URLRequest(url: baseURL.appending(path: path))
         request.httpMethod = method
@@ -190,6 +196,7 @@ final class PushManager: ObservableObject {
         try? await api.register(token: token, preferences: preferences)
     }
 
+    /// Updates the in-memory and persisted opt-in flag together.
     private func setEnabled(_ value: Bool) {
         isEnabled = value
         UserDefaults.standard.set(value, forKey: Self.enabledKey)
@@ -201,6 +208,7 @@ final class PushManager: ObservableObject {
 /// Minimal `UIApplicationDelegate` that bridges APNs callbacks into
 /// `PushManager`. Attach via `@UIApplicationDelegateAdaptor` (see file header).
 final class PushAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    /// Installs this delegate as the notification center delegate during app launch.
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
@@ -209,6 +217,7 @@ final class PushAppDelegate: NSObject, UIApplicationDelegate, UNUserNotification
         return true
     }
 
+    /// Passes successful APNs token registration back to the push manager.
     func application(
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
@@ -216,6 +225,7 @@ final class PushAppDelegate: NSObject, UIApplicationDelegate, UNUserNotification
         Task { await PushManager.shared.didReceive(deviceToken: deviceToken) }
     }
 
+    /// Logs APNs registration failures without interrupting the app flow.
     func application(
         _ application: UIApplication,
         didFailToRegisterForRemoteNotificationsWithError error: Error

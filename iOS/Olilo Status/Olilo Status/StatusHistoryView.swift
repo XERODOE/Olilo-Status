@@ -22,6 +22,7 @@ enum HistoryRange: String, CaseIterable, Identifiable {
         }
     }
     
+    /// Returns the inclusive display window for the selected history range.
     func dateInterval(from now: Date = .now, calendar: Calendar = .current) -> DateInterval {
         switch self {
         case .day:
@@ -60,6 +61,7 @@ struct StatusHistoryView: View {
         }
     }
     
+    /// Counts incidents into one bucket for each hour in the 24-hour interval.
     private func hourlyBuckets(interval: DateInterval) -> [StatusPoint] {
         var buckets: [Date: Int] = [:]
         for i in 0..<24 {
@@ -81,6 +83,7 @@ struct StatusHistoryView: View {
             .map { StatusPoint(date: $0.key, count: $0.value) }
     }
     
+    /// Counts incidents into day buckets for week and month chart ranges.
     private func dailyBuckets(interval: DateInterval, dayCount: Int) -> [StatusPoint] {
         var buckets: [Date: Int] = [:]
         for i in 0..<dayCount {
@@ -102,6 +105,7 @@ struct StatusHistoryView: View {
             .map { StatusPoint(date: $0.key, count: $0.value) }
     }
     
+    /// Picks the date used to place an incident on the history chart.
     private func incidentDate(_ incident: Incident) -> Date? {
         incident.displayDate
     }
@@ -166,6 +170,7 @@ struct StatusHistoryView: View {
         }
     }
     
+    /// Formats chart axis dates for the currently selected range.
     private func dateLabel(for date: Date) -> String {
         let formatter = DateFormatter()
         switch selectedRange {

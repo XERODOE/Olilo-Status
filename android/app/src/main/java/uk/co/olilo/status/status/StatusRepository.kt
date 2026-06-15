@@ -12,6 +12,7 @@ import java.net.URL
 class StatusRepository {
     private val json = Json { ignoreUnknownKeys = true }
 
+    /** Fetches the summary and component payloads used by the status screen. */
     suspend fun fetchStatus(): StatusScreenState = withContext(Dispatchers.IO) {
         val summary = json.decodeFromString<StatusPageSummary>(
             URL("https://status.olilo.co.uk/v3/summary.json").readText(),
@@ -30,6 +31,7 @@ class StatusRepository {
         )
     }
 
+    /** Fetches active notices and historical Atom feed entries for the notices screen. */
     suspend fun fetchNotices(): NoticesScreenState = withContext(Dispatchers.IO) {
         val summary = json.decodeFromString<StatusPageSummary>(
             URL("https://status.olilo.co.uk/v3/summary.json").readText(),
@@ -48,6 +50,7 @@ class StatusRepository {
     }
 }
 
+/** Reads the URL body with bounded timeouts and always closes the connection. */
 private fun URL.readText(): String {
     val connection = (openConnection() as HttpURLConnection).apply {
         connectTimeout = 15_000
@@ -62,6 +65,7 @@ private fun URL.readText(): String {
 }
 
 private class AtomNoticeParser {
+    /** Parses Atom XML and returns notice entries sorted newest first. */
     fun parse(xml: String): List<StatusNotice> {
         val parser = XmlPullParserFactory.newInstance().newPullParser()
         parser.setInput(xml.reader())
@@ -108,6 +112,7 @@ private class AtomNoticeParser {
         return entries.map { makeNotice(it) }.sortedByDescending { it.published.orEmpty() }
     }
 
+    /** Converts a parsed Atom entry into the app notice model. */
     private fun makeNotice(entry: Entry): StatusNotice {
         val text = entry.content.htmlToPlainText().normalizingWhitespace()
         val updates = parseUpdates(entry.content)
@@ -128,6 +133,7 @@ private class AtomNoticeParser {
         )
     }
 
+    /** Extracts the value following a known label in flattened notice text. */
     private fun valueAfter(label: String, text: String): String? {
         val start = text.indexOf(label)
         if (start == -1) return null
@@ -141,6 +147,7 @@ private class AtomNoticeParser {
         return tail.substring(0, stop).trim().ifBlank { null }
     }
 
+    /** Extracts update rows from the notice HTML content. */
     private fun parseUpdates(html: String): List<NoticeUpdate> {
         val pattern = Regex(
             """<p>\s*<small>.*?</small>\s*<br\s*/?>\s*<strong>(.*?)</strong>\s*-\s*(.*?)</p>""",
@@ -166,8 +173,10 @@ private class AtomNoticeParser {
     )
 }
 
+/** Converts HTML content into readable plain text. */
 private fun String.htmlToPlainText(): String =
     Html.fromHtml(this, Html.FROM_HTML_MODE_LEGACY).toString()
 
+/** Trims blank lines and joins remaining lines with single newlines. */
 private fun String.normalizingWhitespace(): String =
     lines().map { it.trim() }.filter { it.isNotEmpty() }.joinToString("\n")

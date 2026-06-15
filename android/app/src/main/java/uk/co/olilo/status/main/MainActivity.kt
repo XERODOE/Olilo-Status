@@ -152,6 +152,7 @@ import uk.co.olilo.status.status.statusSeverity
 class MainActivity : ComponentActivity() {
     private var launchRequest by mutableStateOf(LaunchRequest(Route.Status.path, 0))
 
+    /** Creates the Compose root and routes notification launches to the requested tab. */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         launchRequest = launchRequest.copy(route = intent.requestedRoute())
@@ -162,6 +163,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** Handles notification taps delivered to an already running activity. */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -182,11 +184,13 @@ private enum class Route(val path: String, val label: String, val icon: ImageVec
     Settings("settings", "Settings", Icons.Filled.Settings),
 }
 
+/** Maps an optional launch intent to the first route the app should show. */
 private fun Intent?.requestedRoute(): String = when (this?.getStringExtra(MainActivity.NOTIFICATION_TARGET_TAB)) {
     MainActivity.TAB_NOTICES -> Route.Notices.path
     else -> Route.Status.path
 }
 
+/** Hosts the tab navigation shell and applies launch requests from notifications. */
 @Composable
 private fun OliloApp(launchRequest: LaunchRequest) {
     val navController = rememberNavController()
@@ -249,10 +253,12 @@ private fun OliloApp(launchRequest: LaunchRequest) {
     }
 }
 
+/** Navigates to the in-app WebView route with URL-safe arguments. */
 private fun NavHostController.openWeb(title: String, url: String) {
     navigate("web/${Uri.encode(title)}/${Uri.encode(url)}")
 }
 
+/** Applies the dark Olilo Material theme to app content. */
 @Composable
 private fun OliloStatusTheme(content: @Composable () -> Unit) {
     val colorScheme = darkColorScheme(
@@ -268,6 +274,7 @@ private fun OliloStatusTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = colorScheme, content = content)
 }
 
+/** Draws the shared full-screen gradient behind app content. */
 @Composable
 private fun GradientBackground(content: @Composable () -> Unit) {
     Box(
@@ -283,6 +290,7 @@ private fun GradientBackground(content: @Composable () -> Unit) {
     }
 }
 
+/** Renders the app toolbar with optional back, refresh, and configure actions. */
 @Composable
 private fun OliloTopBar(
     title: String,
@@ -341,6 +349,7 @@ private fun OliloTopBar(
     }
 }
 
+/** Shows a chip that opens a URL inside the app WebView. */
 @Composable
 private fun OpenUrlButton(
     label: String,
@@ -360,6 +369,7 @@ private fun OpenUrlButton(
     )
 }
 
+/** Provides the shared translucent card container used by app sections. */
 @Composable
 private fun StatusCard(content: @Composable () -> Unit) {
     Card(
@@ -377,6 +387,7 @@ private fun StatusCard(content: @Composable () -> Unit) {
     }
 }
 
+/** Displays a section title with a count and optional trailing action. */
 @Composable
 private fun SectionHeader(title: String, count: Int, action: (@Composable () -> Unit)? = null) {
     Row(
@@ -397,6 +408,7 @@ private fun SectionHeader(title: String, count: Int, action: (@Composable () -> 
     }
 }
 
+/** Shows the common full-screen loading or retryable error state. */
 @Composable
 private fun LoadingOrError(
     loadingText: String,
@@ -434,6 +446,7 @@ private data class ComponentDisplayPreferences(
     val hiddenComponentIds: Set<String> = emptySet(),
     val orderedComponentIds: List<String> = emptyList(),
 ) {
+    /** Applies saved ordering while keeping new components at the end. */
     fun orderedComponents(components: List<StatusComponent>): List<StatusComponent> {
         val byId = components.associateBy { it.id }
         val ordered = orderedComponentIds.mapNotNull { byId[it] }
@@ -441,6 +454,7 @@ private data class ComponentDisplayPreferences(
         return ordered + components.filterNot { it.id in orderedIds }
     }
 
+    /** Filters groups down to visible components and drops empty groups. */
     fun visibleGroups(groups: List<StatusComponentGroup>): List<StatusComponentGroup> =
         groups.mapNotNull { group ->
             val visibleComponents = orderedComponents(group.allComponents).filterNot { it.id in hiddenComponentIds }
@@ -451,11 +465,14 @@ private data class ComponentDisplayPreferences(
             }
         }
 
+    /** Returns whether the component is currently shown in the status UI. */
     fun isVisible(component: StatusComponent): Boolean = component.id !in hiddenComponentIds
 
+    /** Returns a copy with one component's visibility updated. */
     fun withVisibility(component: StatusComponent, isVisible: Boolean): ComponentDisplayPreferences =
         copy(hiddenComponentIds = if (isVisible) hiddenComponentIds - component.id else hiddenComponentIds + component.id)
 
+    /** Returns a copy with one component moved within its group ordering. */
     fun moved(fromIndex: Int, toIndex: Int, group: StatusComponentGroup): ComponentDisplayPreferences {
         val groupComponentIds = group.allComponents.map { it.id }.toSet()
         val ids = orderedComponents(group.allComponents).map { it.id }.toMutableList()
@@ -465,9 +482,11 @@ private data class ComponentDisplayPreferences(
         return copy(orderedComponentIds = orderedComponentIds.filterNot { it in groupComponentIds } + ids)
     }
 
+    /** Returns a copy with all hidden components shown again. */
     fun withAllShown(): ComponentDisplayPreferences = copy(hiddenComponentIds = emptySet())
 }
 
+/** Loads saved status component display preferences from shared preferences. */
 private fun loadComponentDisplayPreferences(context: Context): ComponentDisplayPreferences {
     val sharedPreferences = context.getSharedPreferences(COMPONENT_PREFERENCES_NAME, Context.MODE_PRIVATE)
     return ComponentDisplayPreferences(
@@ -479,6 +498,7 @@ private fun loadComponentDisplayPreferences(context: Context): ComponentDisplayP
     )
 }
 
+/** Persists status component visibility and ordering preferences. */
 private fun saveComponentDisplayPreferences(context: Context, preferences: ComponentDisplayPreferences) {
     context.getSharedPreferences(COMPONENT_PREFERENCES_NAME, Context.MODE_PRIVATE)
         .edit()
@@ -487,6 +507,7 @@ private fun saveComponentDisplayPreferences(context: Context, preferences: Compo
         .apply()
 }
 
+/** Returns affected components after applying display preferences. */
 private fun visibleAffectedComponents(
     components: List<StatusComponent>,
     preferences: ComponentDisplayPreferences,
@@ -497,6 +518,7 @@ private fun visibleAffectedComponents(
     }
     .sortedByDescending { statusSeverity(it.status) }
 
+/** Renders the main status dashboard screen. */
 @Composable
 private fun StatusScreen(navController: NavHostController, viewModel: StatusViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -504,6 +526,7 @@ private fun StatusScreen(navController: NavHostController, viewModel: StatusView
     var displayPreferences by remember { mutableStateOf(loadComponentDisplayPreferences(context)) }
     var showComponentEditor by remember { mutableStateOf(false) }
 
+    /** Updates component display preferences and persists them immediately. */
     fun updateDisplayPreferences(preferences: ComponentDisplayPreferences) {
         displayPreferences = preferences
         saveComponentDisplayPreferences(context, preferences)
@@ -594,6 +617,7 @@ private fun StatusScreen(navController: NavHostController, viewModel: StatusView
     }
 }
 
+/** Displays quick links to Olilo operational tools. */
 @Composable
 private fun StatusLinksCard(navController: NavHostController) {
     StatusCard {
@@ -635,6 +659,7 @@ private fun StatusLinksCard(navController: NavHostController) {
     }
 }
 
+/** Renders one status quick-link button. */
 @Composable
 private fun StatusLinkButton(
     title: String,
@@ -649,6 +674,7 @@ private fun StatusLinkButton(
     }
 }
 
+/** Shows the component visibility and ordering editor dialog. */
 @Composable
 private fun ComponentDisplayEditorDialog(
     groups: List<StatusComponentGroup>,
@@ -709,6 +735,7 @@ private fun ComponentDisplayEditorDialog(
     )
 }
 
+/** Renders one editable component row in the component editor. */
 @Composable
 private fun ComponentDisplayEditorRow(
     component: StatusComponent,
@@ -755,12 +782,14 @@ private fun ComponentDisplayEditorRow(
     }
 }
 
+/** Builds the secondary detail line for a component in the editor. */
 private fun componentEditorDetail(component: StatusComponent): String = buildList {
     add(readableStatus(component.status))
     component.group?.name?.takeIf { it.isNotBlank() }?.let(::add)
     component.description?.takeIf { it.isNotBlank() }?.let(::add)
 }.joinToString(" - ")
 
+/** Shows the empty state when all components are hidden. */
 @Composable
 private fun EmptyComponentsCard() {
     StatusCard {
@@ -772,6 +801,7 @@ private fun EmptyComponentsCard() {
     }
 }
 
+/** Displays a status component category card. */
 @Composable
 private fun ComponentCategoryCard(components: List<StatusComponent>) {
     StatusCard {
@@ -783,6 +813,7 @@ private fun ComponentCategoryCard(components: List<StatusComponent>) {
     }
 }
 
+/** Displays the overall status summary and headline metrics. */
 @Composable
 private fun OverviewCard(
     summary: StatusPageSummary,
@@ -831,6 +862,7 @@ private fun OverviewCard(
 // Animated status severity icon, doesn't match the iOS implementaion exactly due to android's
 // difference of accessibilty settings. Will be enabled regardless of settings.
 
+/** Displays the animated status icon used by the overview card. */
 @Composable
 private fun PulsingStatusIcon(status: String) {
     val color = statusColor(status)
@@ -872,6 +904,7 @@ private fun PulsingStatusIcon(status: String) {
     }
 }
 
+/** Displays one compact metric tile. */
 @Composable
 private fun MetricTile(title: String, value: String, modifier: Modifier = Modifier) {
     Surface(
@@ -891,6 +924,7 @@ private fun MetricTile(title: String, value: String, modifier: Modifier = Modifi
     }
 }
 
+/** Renders an active incident card with details and optional link. */
 @Composable
 private fun IncidentCard(incident: Incident, navController: NavHostController) {
     StatusCard {
@@ -909,6 +943,7 @@ private fun IncidentCard(incident: Incident, navController: NavHostController) {
     }
 }
 
+/** Renders an active maintenance card with schedule details and optional link. */
 @Composable
 private fun MaintenanceCard(maintenance: Maintenance, navController: NavHostController) {
     StatusCard {
@@ -927,6 +962,7 @@ private fun MaintenanceCard(maintenance: Maintenance, navController: NavHostCont
     }
 }
 
+/** Displays one status component row with status and optional group details. */
 @Composable
 private fun ComponentRow(component: StatusComponent, showGroup: Boolean) {
     val detail = buildList {
@@ -952,6 +988,7 @@ private fun ComponentRow(component: StatusComponent, showGroup: Boolean) {
     }
 }
 
+/** Renders the notices tab, including current notices and filtered history. */
 @Composable
 private fun NoticesScreen(navController: NavHostController, viewModel: NoticesViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -996,6 +1033,7 @@ private fun NoticesScreen(navController: NavHostController, viewModel: NoticesVi
     }
 }
 
+/** Renders an active incident notice card. */
 @Composable
 private fun ActiveIncidentNoticeCard(incident: Incident, navController: NavHostController) {
     StatusCard {
@@ -1015,6 +1053,7 @@ private fun ActiveIncidentNoticeCard(incident: Incident, navController: NavHostC
     }
 }
 
+/** Displays a selectable notice filter chip. */
 @Composable
 private fun NoticeFilterChip(selected: Boolean, label: String, onClick: () -> Unit) {
     FilterChip(
@@ -1030,6 +1069,7 @@ private fun NoticeFilterChip(selected: Boolean, label: String, onClick: () -> Un
     )
 }
 
+/** Shows collapsible long-form text with a show more control. */
 @Composable
 private fun ExpandableDescription(text: String, collapsedLines: Int = 4) {
     var expanded by remember(text) { mutableStateOf(false) }
@@ -1051,6 +1091,7 @@ private fun ExpandableDescription(text: String, collapsedLines: Int = 4) {
     }
 }
 
+/** Renders an active maintenance notice card. */
 @Composable
 private fun ActiveMaintenanceNoticeCard(maintenance: Maintenance, navController: NavHostController) {
     StatusCard {
@@ -1069,6 +1110,7 @@ private fun ActiveMaintenanceNoticeCard(maintenance: Maintenance, navController:
     }
 }
 
+/** Renders a historical notice card with optional updates and link. */
 @Composable
 private fun NoticeHistoryCard(notice: StatusNotice, navController: NavHostController) {
     var descriptionExpanded by remember(notice.id) { mutableStateOf(false) }
@@ -1135,6 +1177,7 @@ private fun NoticeHistoryCard(notice: StatusNotice, navController: NavHostContro
     }
 }
 
+/** Displays a notice title row with icon and status badge. */
 @Composable
 private fun NoticeTitleRow(title: String, subtitle: String, icon: ImageVector, status: String) {
     Row(
@@ -1153,6 +1196,7 @@ private fun NoticeTitleRow(title: String, subtitle: String, icon: ImageVector, s
     }
 }
 
+/** Displays a status title row with dot and badge. */
 @Composable
 private fun TitleStatusRow(title: String, subtitle: String, status: String) {
     Row(
@@ -1171,6 +1215,7 @@ private fun TitleStatusRow(title: String, subtitle: String, status: String) {
     }
 }
 
+/** Draws a small colored dot for a backend status. */
 @Composable
 private fun StatusDot(status: String, size: Int) {
     Box(
@@ -1181,6 +1226,7 @@ private fun StatusDot(status: String, size: Int) {
     )
 }
 
+/** Displays a compact status badge. */
 @Composable
 private fun StatusBadge(text: String, status: String) {
     Surface(
@@ -1199,6 +1245,7 @@ private fun StatusBadge(text: String, status: String) {
     }
 }
 
+/** Displays only detail rows whose values are present. */
 @Composable
 private fun DetailRows(rows: List<Pair<String, String?>>) {
     val visible = rows.filter { !it.second.isNullOrBlank() }
@@ -1213,6 +1260,7 @@ private fun DetailRows(rows: List<Pair<String, String?>>) {
     }
 }
 
+/** Renders the settings tab and its navigation sections. */
 @Composable
 private fun SettingsScreen(navController: NavHostController) {
     val context = LocalContext.current
@@ -1305,6 +1353,7 @@ private fun SettingsScreen(navController: NavHostController) {
     }
 }
 
+/** Renders notification opt-in and preference controls. */
 @Composable
 private fun NotificationSettingsScreen(navController: NavHostController) {
     val context = LocalContext.current
@@ -1315,6 +1364,7 @@ private fun NotificationSettingsScreen(navController: NavHostController) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val networks = listOf("Openreach", "CityFibre", "Freedom Fibre")
 
+    /** Enables notifications and registers this device with the backend. */
     fun enableNotifications() {
         isSaving = true
         errorMessage = null
@@ -1329,6 +1379,7 @@ private fun NotificationSettingsScreen(navController: NavHostController) {
         }
     }
 
+    /** Disables notifications and unregisters this device from delivery. */
     fun disableNotifications() {
         isSaving = true
         errorMessage = null
@@ -1343,6 +1394,7 @@ private fun NotificationSettingsScreen(navController: NavHostController) {
         }
     }
 
+    /** Saves notification preferences locally and pushes them to the backend. */
     fun updatePreferences(next: NotificationPreferences) {
         preferences = next
         errorMessage = null
@@ -1365,6 +1417,7 @@ private fun NotificationSettingsScreen(navController: NavHostController) {
         }
     }
 
+    /** Handles the notification master toggle and runtime permission request. */
     fun onEnabledChange(next: Boolean) {
         if (next) {
             val permission = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
@@ -1475,11 +1528,13 @@ private fun NotificationSettingsScreen(navController: NavHostController) {
     }
 }
 
+/** Returns the installed app version displayed in settings. */
 private fun appVersion(context: Context): String {
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     return packageInfo.versionName.orEmpty().ifBlank { "Unknown" }
 }
 
+/** Groups related settings rows inside a shared card. */
 @Composable
 private fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1490,6 +1545,7 @@ private fun SettingsSection(title: String, content: @Composable ColumnScope.() -
     }
 }
 
+/** Renders a settings row that opens a URL in the in-app WebView. */
 @Composable
 private fun SettingsLinkRow(
     title: String,
@@ -1508,6 +1564,7 @@ private fun SettingsLinkRow(
     )
 }
 
+/** Renders a settings row that opens an external Android intent. */
 @Composable
 private fun SettingsExternalRow(
     title: String,
@@ -1528,11 +1585,13 @@ private fun SettingsExternalRow(
     )
 }
 
+/** Renders a settings row that navigates within the app. */
 @Composable
 private fun SettingsNavRow(title: String, icon: ImageVector, showDivider: Boolean = true, onClick: () -> Unit) {
     SettingsRow(title, icon, onClick, showDivider = showDivider)
 }
 
+/** Renders a settings row controlled by a switch. */
 @Composable
 private fun SettingsToggleRow(
     title: String,
@@ -1580,6 +1639,7 @@ private fun SettingsToggleRow(
     }
 }
 
+/** Renders the base visual layout for clickable settings rows. */
 @Composable
 private fun SettingsRow(
     title: String,
@@ -1624,6 +1684,7 @@ private fun SettingsRow(
     }
 }
 
+/** Displays an in-app WebView page with a top bar. */
 @Composable
 private fun WebPage(navController: NavHostController, title: String, url: String) {
     Column(Modifier.fillMaxSize()) {
@@ -1647,6 +1708,7 @@ private fun WebPage(navController: NavHostController, title: String, url: String
     }
 }
 
+/** Renders the contact page with social and email links. */
 @Composable
 private fun ContactUsPage(navController: NavHostController) {
     Column(Modifier.fillMaxSize()) {
@@ -1717,6 +1779,7 @@ private fun ContactUsPage(navController: NavHostController) {
     }
 }
 
+/** Renders the contributor credits page. */
 @Composable
 private fun CreditsPage(navController: NavHostController) {
     Column(Modifier.fillMaxSize()) {

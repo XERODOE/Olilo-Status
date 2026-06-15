@@ -25,6 +25,7 @@ class StatusViewModel(
         refresh()
     }
 
+    /** Reloads the status screen state, cancelling any in-flight refresh first. */
     fun refresh() {
         refreshJob?.cancel()
         _state.update { it.copy(isLoading = true, errorMessage = null) }
@@ -55,6 +56,7 @@ class NoticesViewModel(
         refresh()
     }
 
+    /** Reloads notices while preserving the currently selected filter. */
     fun refresh() {
         refreshJob?.cancel()
         _state.update { it.copy(isLoading = true, errorMessage = null) }
@@ -73,6 +75,7 @@ class NoticesViewModel(
         }
     }
 
+    /** Updates the active notice kind filter. */
     fun selectKind(kind: NoticeKind?) {
         _state.update { it.copy(selectedKind = kind) }
     }

@@ -19,6 +19,7 @@ final class AppRouter: ObservableObject {
 
     private init() {}
 
+    /// Switches the main tab selection to the notices screen.
     func openNotices() {
         selectedTab = .notices
     }

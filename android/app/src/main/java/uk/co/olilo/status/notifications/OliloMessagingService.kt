@@ -24,11 +24,13 @@ import uk.co.olilo.status.R
 class OliloMessagingService : FirebaseMessagingService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    /** Re-registers the rotated FCM token with the backend. */
     override fun onNewToken(token: String) {
         // Re-register so the backend always has the device's current token.
         scope.launch { OliloNotifications.register(applicationContext, token) }
     }
 
+    /** Displays an incoming push notification when notifications are enabled. */
     override fun onMessageReceived(message: RemoteMessage) {
         ensureChannel(this)
 
@@ -41,6 +43,7 @@ class OliloMessagingService : FirebaseMessagingService() {
         }
     }
 
+    /** Builds and posts a notification that opens the notices tab. */
     @RequiresPermission(android.Manifest.permission.POST_NOTIFICATIONS)
     private fun showNotification(title: String, body: String) {
         val intent = Intent(this, MainActivity::class.java).apply {
@@ -69,6 +72,7 @@ class OliloMessagingService : FirebaseMessagingService() {
     companion object {
         const val CHANNEL_ID = "olilo_status"
 
+        /** Creates the Android notification channel if it does not already exist. */
         fun ensureChannel(context: Context) {
             val manager = context.getSystemService(NotificationManager::class.java)
             if (manager.getNotificationChannel(CHANNEL_ID) != null) return

@@ -30,10 +30,12 @@ extension OliloStatusWidgetControl {
     }
 
     struct Provider: AppIntentControlValueProvider {
+        /// Provides static control state for previews and the widget gallery.
         func previewValue(configuration: TimerConfiguration) -> Value {
             OliloStatusWidgetControl.Value(isRunning: false, name: configuration.timerName)
         }
 
+        /// Provides the current control value for the configured timer name.
         func currentValue(configuration: TimerConfiguration) async throws -> Value {
             let isRunning = true
             return OliloStatusWidgetControl.Value(isRunning: isRunning, name: configuration.timerName)
@@ -57,12 +59,15 @@ struct StartTimerIntent: SetValueIntent {
     @Parameter(title: "Timer is running")
     var value: Bool
 
+    /// Creates the intent with default App Intents initialization.
     init() {}
 
+    /// Creates the intent for a specific timer name from the control widget.
     init(_ name: String) {
         self.name = name
     }
 
+    /// Completes the control action without additional side effects.
     func perform() async throws -> some IntentResult {
         return .result()
     }
