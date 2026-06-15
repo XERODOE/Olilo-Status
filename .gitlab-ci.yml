@@ -19,8 +19,10 @@ stages:
 
 variables:
   # Android SDK components installed into the build image. Bump these to match
-  # the app's compileSdk / build-tools if you raise them.
-  ANDROID_COMPILE_SDK: "37"
+  # the app's compileSdk / build-tools if you raise them. Note the platform uses
+  # Android's minor-version scheme, so the package ID is "android-37.0" (with the
+  # .0), even though compileSdk in Gradle is just 37.
+  ANDROID_COMPILE_SDK: "37.0"
   ANDROID_BUILD_TOOLS: "37.0.0"
   # Command-line tools revision. Must be new enough to know the target SDK; API 37
   # (Android 17) needs build 14742923+ or sdkmanager reports "Failed to find package".
