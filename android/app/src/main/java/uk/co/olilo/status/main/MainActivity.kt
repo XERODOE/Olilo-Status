@@ -1014,8 +1014,8 @@ private fun NoticesScreen(navController: NavHostController, viewModel: NoticesVi
             val activeCount = state.activeIncidents.size + state.activeMaintenances.size
             if (activeCount > 0) {
                 item { SectionHeader("Current Notices", activeCount) }
-                items(state.activeIncidents, key = { it.id }) { ActiveIncidentNoticeCard(it, navController) }
-                items(state.activeMaintenances, key = { it.id }) { ActiveMaintenanceNoticeCard(it, navController) }
+                items(state.activeIncidents, key = { "current-incident-${it.id}" }) { ActiveIncidentNoticeCard(it, navController) }
+                items(state.activeMaintenances, key = { "current-maintenance-${it.id}" }) { ActiveMaintenanceNoticeCard(it, navController) }
             }
 
             item {
@@ -1028,7 +1028,7 @@ private fun NoticesScreen(navController: NavHostController, viewModel: NoticesVi
                 }
             }
             item { SectionHeader("Notice History", filtered.size) }
-            items(filtered, key = { it.id }) { NoticeHistoryCard(it, navController) }
+            items(filtered, key = { "history-notice-${it.id}" }) { NoticeHistoryCard(it, navController) }
         }
     }
 }

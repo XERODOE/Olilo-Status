@@ -75,6 +75,14 @@ final class NoticesViewModel: ObservableObject {
     }
 }
 
+private extension Incident {
+    var currentNoticeListID: String { "current-incident-\(id)" }
+}
+
+private extension Maintenance {
+    var currentNoticeListID: String { "current-maintenance-\(id)" }
+}
+
 struct NoticesView: View {
     @StateObject private var model = NoticesViewModel()
 
@@ -105,11 +113,11 @@ struct NoticesView: View {
                         LazyVStack(spacing: 18) {
                             if !model.activeIncidents.isEmpty || !model.activeMaintenances.isEmpty {
                                 NoticeSectionHeader(title: "Current Notices", count: model.activeIncidents.count + model.activeMaintenances.count)
-                                ForEach(model.activeIncidents) { incident in
+                                ForEach(model.activeIncidents, id: \.currentNoticeListID) { incident in
                                     ActiveIncidentNoticeCard(incident: incident)
                                         .padding(.horizontal)
                                 }
-                                ForEach(model.activeMaintenances) { maintenance in
+                                ForEach(model.activeMaintenances, id: \.currentNoticeListID) { maintenance in
                                     ActiveMaintenanceNoticeCard(maintenance: maintenance)
                                         .padding(.horizontal)
                                 }
