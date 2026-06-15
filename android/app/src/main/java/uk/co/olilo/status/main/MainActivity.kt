@@ -614,7 +614,7 @@ private fun StatusLinksCard(navController: NavHostController) {
                     title = "Portal",
                     icon = Icons.Filled.Work,
                     modifier = Modifier.weight(1f),
-                    onClick = { navController.openWeb("Portal", "https://portal.olilo.co.uk") },
+                    onClick = { navController.openWeb("Portal", "https://billing.olilo.co.uk") },
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
