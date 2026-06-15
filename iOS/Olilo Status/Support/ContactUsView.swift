@@ -2,43 +2,42 @@ import SwiftUI
 
 struct ContactUsView: View {
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Form {
-                Section {
-                    Link(destination: URL(string: "https://discord.gg/olilo")!) {
-                        ContactAssetRowLabel(title: "Find us on Discord", imageName: "Discord")
-                    }
-
-                    Link(destination: URL(string: "https://www.reddit.com/r/Olilo")!) {
-                        ContactAssetRowLabel(title: "Find us on Reddit", imageName: "Reddit")
-                    }
-                } header: {
-                    Text("Social")
-                } footer: {
-                    Text("Support links will open to external sites.")
+        Form {
+            Section {
+                Link(destination: URL(string: "https://discord.gg/olilo")!) {
+                    ContactAssetRowLabel(title: "Find us on Discord", imageName: "Discord")
                 }
 
-                Section {
-                    Link(destination: URL(string: "mailto:support@olilo.co.uk")!) {
-                        ContactSystemRowLabel(title: "Olilo Support", systemImage: "envelope")
-                    }
-
-                    Link(destination: URL(string: "mailto:sales@olilo.co.uk")!) {
-                        ContactSystemRowLabel(title: "Olilo Sales", systemImage: "envelope")
-                    }
-                } header: {
-                    Text("Email")
-                } footer: {
-                    Text("Please provide as much useful information as possible.")
+                Link(destination: URL(string: "https://www.reddit.com/r/Olilo")!) {
+                    ContactAssetRowLabel(title: "Find us on Reddit", imageName: "Reddit")
                 }
+            } header: {
+                Text("Social")
+            } footer: {
+                Text("Support links will open to external sites.")
             }
-            .scrollContentBackground(.hidden)
-            .background(OliloDarkGradientBackground())
-            .safeAreaPadding(.bottom, 72)
+
+            Section {
+                Link(destination: URL(string: "mailto:support@olilo.co.uk")!) {
+                    ContactSystemRowLabel(title: "Olilo Support", systemImage: "envelope")
+                }
+
+                Link(destination: URL(string: "mailto:sales@olilo.co.uk")!) {
+                    ContactSystemRowLabel(title: "Olilo Sales", systemImage: "envelope")
+                }
+            } header: {
+                Text("Email")
+            } footer: {
+                Text("Please provide as much useful information as possible.")
+            }
 
             OliloFooterLogo()
-                .padding(.bottom, 24)
+                .frame(maxWidth: .infinity)
+                .listRowInsets(EdgeInsets(top: 24, leading: 0, bottom: 24, trailing: 0))
+                .listRowBackground(Color.clear)
         }
+        .scrollContentBackground(.hidden)
+        .background(OliloDarkGradientBackground())
         .navigationTitle("Contact Us")
         .toolbar {
             ToolbarItem(placement: .principal) {

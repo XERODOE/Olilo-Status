@@ -2,7 +2,7 @@ import SwiftUI
 
 struct CreditsView: View {
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
             OliloDarkGradientBackground()
                 .ignoresSafeArea()
 
@@ -14,14 +14,14 @@ struct CreditsView: View {
 
                     Text("Olilo Status is a community built application overseen by the official Olilo Team. Listed below are the developers that helped put Olilo Status together.")
                         .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .stroke(.white.opacity(0.15), lineWidth: 1)
-                    }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .stroke(.white.opacity(0.15), lineWidth: 1)
+                        }
 
                     Text("Olilo Status Contributors")
                         .font(.headline)
@@ -46,16 +46,17 @@ struct CreditsView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                         .overlay {
                             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .stroke(.white.opacity(0.15), lineWidth: 1)                        }
+                                .stroke(.white.opacity(0.15), lineWidth: 1)
+                        }
 
+                    OliloFooterLogo()
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 12)
+                        .padding(.bottom, 24)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
             }
-            .safeAreaPadding(.bottom, 72)
-
-            OliloFooterLogo()
-                .padding(.bottom, 24)
         }
         .navigationTitle("Credits")
         .toolbar {
