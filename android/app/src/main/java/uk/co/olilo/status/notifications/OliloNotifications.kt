@@ -23,13 +23,7 @@ import kotlin.coroutines.resumeWithException
  */
 object OliloNotifications {
     /** Base URL of the notifications backend (no trailing slash). */
-    const val BASE_URL = "https://notifications.example.com"
-
-    /**
-     * Shared secret sent as `x-api-key`. Leave null if the backend has no
-     * API key configured. A key shipped in the app only deters casual abuse.
-     */
-    private val apiKey: String? = null
+    const val BASE_URL = "https://notifications.olilo.co.uk"
 
     private val json = Json { encodeDefaults = true }
 
@@ -105,7 +99,6 @@ object OliloNotifications {
                 readTimeout = 15_000
                 doOutput = true
                 setRequestProperty("Content-Type", "application/json")
-                apiKey?.let { setRequestProperty("x-api-key", it) }
             }
             try {
                 connection.outputStream.use { it.write(json.encodeToString(body).toByteArray()) }
