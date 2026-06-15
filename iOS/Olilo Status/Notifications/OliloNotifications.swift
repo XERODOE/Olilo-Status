@@ -9,7 +9,7 @@
 //     "Push Notifications". (Background Modes -> Remote notifications is optional
 //     and only needed for silent/background pushes.)
 //
-//  2. Set your backend URL (and optional API key) in `OliloNotificationConfig`
+//  2. The notifications backend URL is configured in `OliloNotificationConfig`
 //     below.
 //
 //  3. Wire the app delegate into the SwiftUI entry point. In `Olilo.swift`:
@@ -36,12 +36,7 @@ import UserNotifications
 
 enum OliloNotificationConfig {
     /// Base URL of the notifications backend (no trailing slash).
-    static let baseURL = URL(string: "https://notifications.example.com")!
-
-    /// Shared secret sent as `x-api-key`. Leave `nil` if the backend has no
-    /// API_KEY configured. Note: a key shipped in the app is not a strong
-    /// secret - it only deters casual abuse of the registration endpoint.
-    static let apiKey: String? = nil
+    static let baseURL = URL(string: "https://notifications.olilo.co.uk")!
 }
 
 // MARK: - Preferences
@@ -74,7 +69,6 @@ struct NotificationPreferences: Codable, Equatable {
 /// Thin async client over the backend's `/api/devices` endpoints.
 struct NotificationsAPI {
     var baseURL = OliloNotificationConfig.baseURL
-    var apiKey = OliloNotificationConfig.apiKey
 
     private struct RegisterBody: Encodable {
         let token: String
@@ -119,7 +113,6 @@ struct NotificationsAPI {
         var request = URLRequest(url: baseURL.appending(path: path))
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let apiKey { request.setValue(apiKey, forHTTPHeaderField: "x-api-key") }
         request.httpBody = try JSONEncoder().encode(body)
 
         let (_, response) = try await URLSession.shared.data(for: request)
