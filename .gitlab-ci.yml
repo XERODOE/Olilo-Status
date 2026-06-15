@@ -1,0 +1,111 @@
+# GitLab CI/CD for the Olilo Status Android app.
+#
+# This repo is a monorepo; the Android project lives in android/. The pipeline
+# builds a signed Android App Bundle and, on the default branch, uploads it to
+# the Google Play "internal testing" track via Gradle Play Publisher.
+#
+# Required CI/CD variables (Settings -> CI/CD -> Variables), all "Protected"
+# and "Masked" where possible. See android/RELEASING.md for how to obtain them:
+#   ANDROID_KEYSTORE_BASE64    base64 of the upload keystore (.jks). Type: Variable.
+#   ANDROID_KEYSTORE_PASSWORD  keystore password.
+#   ANDROID_KEY_ALIAS          key alias inside the keystore.
+#   ANDROID_KEY_PASSWORD             key password.
+#   PLAY_SERVICE_ACCOUNT_JSON_BASE64 base64 of the Play service-account JSON.
+#                                    Type: Variable, "Masked and hidden", Protected.
+
+stages:
+  - build
+  - publish
+
+variables:
+  # Android SDK components installed into the build image. Bump these to match
+  # the app's compileSdk / build-tools if you raise them.
+  ANDROID_COMPILE_SDK: "37"
+  ANDROID_BUILD_TOOLS: "37.0.0"
+  # Command-line tools revision (https://developer.android.com/studio#command-line-tools-only).
+  ANDROID_CMDLINE_TOOLS: "13114758"
+  ANDROID_HOME: "${CI_PROJECT_DIR}/.android-sdk"
+  ANDROID_SDK_ROOT: "${CI_PROJECT_DIR}/.android-sdk"
+  GRADLE_USER_HOME: "${CI_PROJECT_DIR}/.gradle"
+  # Offset added to the pipeline IID for the versionCode, so CI builds always sit
+  # above any versionCodes uploaded manually during setup (1, 2, ...). The final
+  # versionCode (offset + CI_PIPELINE_IID) is computed in before_script.
+  ANDROID_VERSION_CODE_OFFSET: "1000"
+
+# JDK 21 base image (the Gradle toolchain targets JDK 21) plus an on-demand
+# Android SDK install. Caches keep the SDK and Gradle artifacts between runs.
+default:
+  image: eclipse-temurin:21-jdk
+  cache:
+    key: "olilo-android"
+    paths:
+      - .gradle/caches/
+      - .gradle/wrapper/
+      - .android-sdk/
+  before_script:
+    # Monotonic versionCode that stays above any manually uploaded codes.
+    - export ANDROID_VERSION_CODE=$((ANDROID_VERSION_CODE_OFFSET + CI_PIPELINE_IID))
+    - apt-get update -qq && apt-get install -y -qq unzip > /dev/null
+    - export PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${PATH}"
+    - |
+      if [ ! -d "${ANDROID_HOME}/cmdline-tools/latest" ]; then
+        echo "Installing Android command-line tools..."
+        mkdir -p "${ANDROID_HOME}/cmdline-tools"
+        curl -fsSL "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_CMDLINE_TOOLS}_latest.zip" -o /tmp/cmdline-tools.zip
+        unzip -q /tmp/cmdline-tools.zip -d "${ANDROID_HOME}/cmdline-tools"
+        mv "${ANDROID_HOME}/cmdline-tools/cmdline-tools" "${ANDROID_HOME}/cmdline-tools/latest"
+        rm /tmp/cmdline-tools.zip
+      fi
+    - yes | sdkmanager --licenses > /dev/null || true
+    - sdkmanager "platform-tools" "platforms;android-${ANDROID_COMPILE_SDK}" "build-tools;${ANDROID_BUILD_TOOLS}" > /dev/null
+    - cd android
+    - chmod +x ./gradlew
+    # Decode the upload keystore for signing the release bundle.
+    - |
+      if [ -n "${ANDROID_KEYSTORE_BASE64}" ]; then
+        echo "${ANDROID_KEYSTORE_BASE64}" | base64 -d > "${CI_PROJECT_DIR}/upload.keystore"
+        export ANDROID_KEYSTORE_PATH="${CI_PROJECT_DIR}/upload.keystore"
+      else
+        echo "WARNING: ANDROID_KEYSTORE_BASE64 not set - release bundle will be unsigned."
+      fi
+    # Decode the Play service-account JSON (stored base64 so it can be masked/hidden).
+    - |
+      if [ -n "${PLAY_SERVICE_ACCOUNT_JSON_BASE64}" ]; then
+        echo "${PLAY_SERVICE_ACCOUNT_JSON_BASE64}" | base64 -d > "${CI_PROJECT_DIR}/play-account.json"
+        export PLAY_SERVICE_ACCOUNT_JSON="${CI_PROJECT_DIR}/play-account.json"
+      fi
+
+# Compile and produce a signed AAB on branches / merge requests (no upload).
+build:
+  stage: build
+  script:
+    # ANDROID_KEYSTORE_PATH is exported by before_script when the keystore is
+    # present. On unprotected branches without the secret this stays unset and
+    # the release bundle is built unsigned (still a useful compile check).
+    - ./gradlew --no-daemon bundleRelease
+  artifacts:
+    name: "olilo-status-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - android/app/build/outputs/bundle/release/*.aab
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: on_success
+
+# Build + upload to Google Play internal testing on the default branch.
+publish:
+  stage: publish
+  script:
+    # Runs only on the default branch, where the protected signing + Play
+    # credentials are available, so the bundle is signed and uploaded.
+    - ./gradlew --no-daemon publishReleaseBundle
+  artifacts:
+    name: "olilo-status-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - android/app/build/outputs/bundle/release/*.aab
+    expire_in: 1 month
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: on_success

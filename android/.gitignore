@@ -4,3 +4,9 @@ local.properties
 captures/
 
 app/build/
+
+# Signing + Play publishing secrets - never commit these. CI injects them.
+*.jks
+*.keystore
+upload.keystore
+play-service-account*.json
