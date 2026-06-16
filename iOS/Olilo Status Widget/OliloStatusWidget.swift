@@ -495,8 +495,6 @@ struct OliloStatusWidgetView: View {
 struct OliloLockScreenStatusWidgetView: View {
     let entry: OliloStatusEntry
 
-    @Environment(\.widgetFamily) private var widgetFamily
-
     private var statusText: String {
         entry.isOnline ? "Online" : "Offline"
     }
@@ -510,47 +508,10 @@ struct OliloLockScreenStatusWidgetView: View {
     }
 
     var body: some View {
-        Group {
-            switch widgetFamily {
-            case .accessoryCircular:
-                circularLayout
-            case .accessoryRectangular:
-                rectangularLayout
-            case .accessoryInline:
-                inlineLayout
-            default:
-                rectangularLayout
-            }
-        }
+        rectangularLayout
         .containerBackground(for: .widget) {
             Color.clear
         }
-    }
-
-    private var circularLayout: some View {
-        ZStack {
-            Circle()
-                .strokeBorder(.secondary.opacity(0.35), lineWidth: 2)
-            VStack(spacing: 2) {
-                Image(systemName: "network")
-                    .font(.system(size: 14, weight: .semibold))
-                    .widgetAccentable()
-                Text(entry.source.shortName)
-                    .font(.system(size: 11, weight: .bold))
-                    .lineLimit(1)
-                HStack(spacing: 3) {
-                    Circle()
-                        .fill(statusColor)
-                        .frame(width: 5, height: 5)
-                        .widgetAccentable()
-                    Text(statusText)
-                        .font(.system(size: 8, weight: .medium))
-                        .lineLimit(1)
-                }
-            }
-            .padding(5)
-        }
-        .accessibilityLabel("\(entry.source.displayName) \(statusText)")
     }
 
     private var rectangularLayout: some View {
@@ -593,14 +554,6 @@ struct OliloLockScreenStatusWidgetView: View {
                 .strokeBorder(statusColor.opacity(0.35), lineWidth: 1)
         )
         .accessibilityLabel("\(entry.source.displayName) \(statusText)")
-    }
-
-    private var inlineLayout: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "network")
-            Text("\(entry.source.displayName): \(statusText)")
-        }
-        .font(.caption.weight(.semibold))
     }
 }
 
@@ -703,7 +656,7 @@ private struct NoticeCountBadge: View {
                 .font(.system(size: 24, weight: .bold))
                 .foregroundStyle(accentColor)
                 .widgetAccentable()
-            Text(count == 1 ? "active" : "active")
+            Text("active")
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(.secondary)
         }
