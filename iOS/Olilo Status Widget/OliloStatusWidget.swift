@@ -600,7 +600,7 @@ struct OliloNoticesWidgetView: View {
                         .lineLimit(1)
                 }
                 Spacer(minLength: 12)
-                NoticeCountBadge(count: entry.notices.count, accentColor: accentColor)
+                NoticeCountBadge(count: entry.notices.count, source: entry.source, accentColor: accentColor)
             }
 
             if entry.didLoadSuccessfully {
@@ -648,7 +648,17 @@ struct OliloNoticesWidgetView: View {
 
 private struct NoticeCountBadge: View {
     let count: Int
+    let source: WidgetNoticeSource
     let accentColor: Color
+
+    private var accessibilityText: String {
+        switch source {
+        case .incidents:
+            return "\(count) active \(count == 1 ? "incident" : "incidents")"
+        case .maintenance:
+            return "\(count) planned maintenance \(count == 1 ? "notice" : "notices")"
+        }
+    }
 
     var body: some View {
         VStack(spacing: 2) {
@@ -661,7 +671,7 @@ private struct NoticeCountBadge: View {
                 .foregroundStyle(.secondary)
         }
         .frame(width: 58)
-        .accessibilityLabel("\(count) active notices")
+        .accessibilityLabel(accessibilityText)
     }
 }
 

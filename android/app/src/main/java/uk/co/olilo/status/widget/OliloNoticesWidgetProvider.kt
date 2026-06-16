@@ -105,7 +105,7 @@ class OliloNoticesWidgetProvider : AppWidgetProvider() {
                 !didLoadSuccessfully -> "Unable to load status"
                 notices.isEmpty() && noticeType == "Maintenance" -> "No planned maintenance"
                 notices.isEmpty() -> "No active incidents"
-                else -> "${notices.size} active ${noticeType.lowercase()}"
+                else -> activeNoticeSummary(notices.size, noticeType)
             }
 
             val views = RemoteViews(context.packageName, R.layout.olilo_notices_widget).apply {
@@ -186,6 +186,12 @@ class OliloNoticesWidgetProvider : AppWidgetProvider() {
 
         /** Builds the preference key for a large widget notice type selection. */
         private fun noticeTypeKey(appWidgetId: Int): String = "notice_type_$appWidgetId"
+
+        /** Describes non-empty notice counts without producing singular/plural mismatches. */
+        private fun activeNoticeSummary(count: Int, noticeType: String): String = when (noticeType) {
+            "Maintenance" -> "$count planned maintenance ${if (count == 1) "notice" else "notices"}"
+            else -> "$count active ${if (count == 1) "incident" else "incidents"}"
+        }
 
         private const val SUMMARY_URL = "https://status.olilo.co.uk/v3/summary.json"
         private const val WIDGET_PREFERENCES_NAME = "olilo_notices_widget_preferences"
