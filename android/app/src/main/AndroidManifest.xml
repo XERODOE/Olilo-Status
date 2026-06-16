@@ -24,6 +24,13 @@
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".widget.OliloNoticesWidgetConfigurationActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
         <receiver
             android:name=".widget.OliloStatusWidgetProvider"
             android:exported="false">
@@ -33,6 +40,16 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/olilo_status_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".widget.OliloNoticesWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/olilo_notices_widget_info" />
         </receiver>
         <service
             android:name=".notifications.OliloMessagingService"
