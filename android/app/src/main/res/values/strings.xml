@@ -6,4 +6,10 @@
     <string name="widget_default_source">Openreach</string>
     <string name="widget_timeline_start">-24 h</string>
     <string name="widget_timeline_end">Now</string>
+    <string name="notices_widget_description">Shows active incidents or maintenance from Olilo Status.</string>
+    <string name="notices_widget_root_description">Olilo notices widget</string>
+    <string name="notices_widget_default_type">Incidents</string>
+    <string name="notices_widget_default_count">0</string>
+    <string name="notices_widget_active_label">active</string>
+    <string name="notices_widget_checked_now">Now</string>
 </resources>

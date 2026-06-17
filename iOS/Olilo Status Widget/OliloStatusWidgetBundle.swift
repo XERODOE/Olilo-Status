@@ -5,5 +5,7 @@ import SwiftUI
 struct OliloStatusWidgetBundle: WidgetBundle {
     var body: some Widget {
         OliloStatusWidget()
+        OliloNoticesWidget()
+        OliloLockScreenStatusWidget()
     }
 }
