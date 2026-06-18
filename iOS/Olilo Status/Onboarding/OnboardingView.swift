@@ -26,6 +26,7 @@ struct OnboardingView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .tint(Color.oliloPurple)
 
                     if selectedPage < pages.indices.last! {
@@ -37,6 +38,7 @@ struct OnboardingView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 12)
                 .padding(.bottom, 24)
+                .iPadReadableContent()
             }
             .background(OliloDarkGradientBackground())
             .navigationTitle("Welcome")
@@ -166,6 +168,7 @@ private struct OnboardingPageView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 24)
+            .iPadReadableContent()
         }
         .scrollIndicators(.hidden)
     }
