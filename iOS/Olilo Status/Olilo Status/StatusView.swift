@@ -251,12 +251,12 @@ final class StatusViewModel: ObservableObject {
 
     /// Refreshes summary and component data, updating published state for the status screen.
     func refresh() async {
+        guard !isLoading else { return }
         isLoading = true
         errorMessage = nil
         do {
-            async let summaryTask = api.fetchSummary()
-            async let componentsTask = api.fetchComponents()
-            let (summary, components) = try await (summaryTask, componentsTask)
+            let summary = try await api.fetchSummary()
+            let components = try await api.fetchComponents()
 
             self.summary = summary
             self.components = components

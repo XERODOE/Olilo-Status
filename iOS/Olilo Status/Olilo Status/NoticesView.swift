@@ -57,12 +57,12 @@ final class NoticesViewModel: ObservableObject {
 
     /// Refreshes active notices and historical feed entries for the notices screen.
     func refresh() async {
+        guard !isLoading else { return }
         isLoading = true
         errorMessage = nil
         do {
-            async let summaryTask = api.fetchSummary()
-            async let noticesTask = noticesAPI.fetchNoticeHistory()
-            let (summary, notices) = try await (summaryTask, noticesTask)
+            let summary = try await api.fetchSummary()
+            let notices = try await noticesAPI.fetchNoticeHistory()
 
             self.activeIncidents = summary.activeIncidents ?? []
             self.activeMaintenances = summary.activeMaintenances ?? []
