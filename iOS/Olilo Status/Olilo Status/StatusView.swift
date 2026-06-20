@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import Charts
+import UIKit
 
 struct Incident: Identifiable, Decodable {
     let id: String
@@ -270,19 +271,28 @@ final class StatusViewModel: ObservableObject {
     }
 }
 
+private struct StatusWebDestination: Identifiable {
+    let title: String
+    let url: URL
+
+    var id: URL { url }
+}
+
 struct StatusView: View {
     @StateObject private var model = StatusViewModel()
-    @State private var isDashboardPresented = false
-    @State private var isPortalPresented = false
-    @State private var isTerminalPresented = false
-    @State private var isWikiPresented = false
+    @State private var presentedWebDestination: StatusWebDestination?
     @State private var isComponentEditorPresented = false
     @State private var componentDisplayPreferences = StatusComponentDisplayPreferences.load()
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     private let dashboardURL = URL(string: "https://dashboard.as212683.net/d/olilo-traffic-analytics-001/traffic-analytics?orgId=2&from=now-1h&to=now&timezone=browser")
     private let portalURL = URL(string: "https://billing.olilo.co.uk")
     private let terminalURL = URL(string: "https://terminal.olilo.co.uk")
     private let wikiURL = URL(string: "https://olilo.co.uk/wiki")
+
+    private var usesIPadLayout: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass == .regular
+    }
 
     var body: some View {
         NavigationStack {
@@ -324,12 +334,13 @@ struct StatusView: View {
                                 .padding(.horizontal)
 
                                 StatusLinksCard(
+                                    usesIPadLayout: usesIPadLayout,
                                     isTerminalEnabled: terminalURL != nil,
                                     isWikiEnabled: wikiURL != nil,
-                                    dashboardAction: { isDashboardPresented = true },
-                                    portalAction: { isPortalPresented = true },
-                                    terminalAction: { isTerminalPresented = true },
-                                    wikiAction: { isWikiPresented = true }
+                                    dashboardAction: { presentWebDestination(title: "Dashboard", url: dashboardURL) },
+                                    portalAction: { presentWebDestination(title: "Portal", url: portalURL) },
+                                    terminalAction: { presentWebDestination(title: "Terminal", url: terminalURL) },
+                                    wikiAction: { presentWebDestination(title: "Wiki", url: wikiURL) }
                                 )
                                 .padding(.horizontal)
 
@@ -415,31 +426,42 @@ struct StatusView: View {
                 preferences.save()
             }
             .background(OliloDarkGradientBackground())
-            .sheet(isPresented: $isDashboardPresented) {
-                if let dashboardURL {
-                    OliloWebViewSheet(title: "Dashboard", url: dashboardURL)
-                }
-            }
-            .sheet(isPresented: $isPortalPresented) {
-                if let portalURL {
-                    OliloWebViewSheet(title: "Portal", url: portalURL)
-                }
-            }
-            .sheet(isPresented: $isTerminalPresented) {
-                if let terminalURL {
-                    OliloWebViewSheet(title: "Terminal", url: terminalURL)
-                }
-            }
-            .sheet(isPresented: $isWikiPresented) {
-                if let wikiURL {
-                    OliloWebViewSheet(title: "Wiki", url: wikiURL)
-                }
-            }
+            .modifier(
+                StatusWebDestinationPresenter(
+                    destination: $presentedWebDestination,
+                    usesIPadLayout: usesIPadLayout
+                )
+            )
             .sheet(isPresented: $isComponentEditorPresented) {
                 ComponentDisplayEditor(
                     groups: model.componentGroups,
                     preferences: $componentDisplayPreferences
                 )
+            }
+        }
+    }
+
+    private func presentWebDestination(title: String, url: URL?) {
+        guard let url else { return }
+        presentedWebDestination = StatusWebDestination(title: title, url: url)
+    }
+}
+
+private struct StatusWebDestinationPresenter: ViewModifier {
+    @Binding var destination: StatusWebDestination?
+    let usesIPadLayout: Bool
+
+    func body(content: Content) -> some View {
+        if usesIPadLayout {
+            content.fullScreenCover(item: $destination) { destination in
+                OliloWebViewSheet(title: destination.title, url: destination.url)
+                    .ignoresSafeArea(edges: .bottom)
+            }
+        } else {
+            content.sheet(item: $destination) { destination in
+                OliloWebViewSheet(title: destination.title, url: destination.url)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
             }
         }
     }
@@ -543,6 +565,7 @@ private struct EmptyComponentsCard: View {
 }
 
 private struct StatusLinksCard: View {
+    let usesIPadLayout: Bool
     let isTerminalEnabled: Bool
     let isWikiEnabled: Bool
     let dashboardAction: () -> Void
@@ -550,15 +573,43 @@ private struct StatusLinksCard: View {
     let terminalAction: () -> Void
     let wikiAction: () -> Void
 
-    private let columns = [GridItem(.adaptive(minimum: 140), spacing: 10)]
+    private var columns: [GridItem] {
+        if usesIPadLayout {
+            Array(repeating: GridItem(.flexible(minimum: 150), spacing: 12), count: 4)
+        } else {
+            [GridItem(.adaptive(minimum: 140), spacing: 10)]
+        }
+    }
 
     var body: some View {
         StatusCard {
-            LazyVGrid(columns: columns, spacing: 10) {
-                StatusLinkButton(title: "Dashboard", systemImage: "chart.line.uptrend.xyaxis", action: dashboardAction)
-                StatusLinkButton(title: "Portal", systemImage: "person.crop.circle", action: portalAction)
-                StatusLinkButton(title: "Terminal", systemImage: "terminal", isEnabled: isTerminalEnabled, action: terminalAction)
-                StatusLinkButton(title: "Wiki", systemImage: "book.closed", isEnabled: isWikiEnabled, action: wikiAction)
+            LazyVGrid(columns: columns, spacing: usesIPadLayout ? 12 : 10) {
+                StatusLinkButton(
+                    title: "Dashboard",
+                    systemImage: "chart.line.uptrend.xyaxis",
+                    usesIPadLayout: usesIPadLayout,
+                    action: dashboardAction
+                )
+                StatusLinkButton(
+                    title: "Portal",
+                    systemImage: "person.crop.circle",
+                    usesIPadLayout: usesIPadLayout,
+                    action: portalAction
+                )
+                StatusLinkButton(
+                    title: "Terminal",
+                    systemImage: "terminal",
+                    usesIPadLayout: usesIPadLayout,
+                    isEnabled: isTerminalEnabled,
+                    action: terminalAction
+                )
+                StatusLinkButton(
+                    title: "Wiki",
+                    systemImage: "book.closed",
+                    usesIPadLayout: usesIPadLayout,
+                    isEnabled: isWikiEnabled,
+                    action: wikiAction
+                )
             }
         }
     }
@@ -567,19 +618,27 @@ private struct StatusLinksCard: View {
 private struct StatusLinkButton: View {
     let title: String
     let systemImage: String
+    let usesIPadLayout: Bool
     var isEnabled = true
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Label(title, systemImage: systemImage)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-                .frame(maxWidth: .infinity)
+            Label {
+                Text(title)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            } icon: {
+                Image(systemName: systemImage)
+                    .font(usesIPadLayout ? .title3.weight(.semibold) : .caption.weight(.semibold))
+            }
+            .font(usesIPadLayout ? .callout.weight(.semibold) : .caption.weight(.semibold))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity, minHeight: usesIPadLayout ? 52 : 0)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.bordered)
+        .controlSize(usesIPadLayout ? .large : .regular)
         .tint(Color.oliloPurple)
         .disabled(!isEnabled)
         .accessibilityHint("Opens \(title)")

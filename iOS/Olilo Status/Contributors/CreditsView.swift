@@ -55,7 +55,8 @@ struct CreditsView: View {
                         .padding(.bottom, 24)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
+                .padding(.vertical)
+                .iPadReadableContent()
             }
         }
         .navigationTitle("Credits")

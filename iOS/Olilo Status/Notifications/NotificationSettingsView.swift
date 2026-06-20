@@ -20,7 +20,10 @@ struct NotificationSettingsView: View {
     private let networks = ["Openreach", "CityFibre", "Freedom Fibre"]
 
     var body: some View {
-        Form {
+        ZStack {
+            OliloDarkGradientBackground()
+
+            Form {
             Section {
                 Toggle(isOn: enabledBinding) {
                     notificationToggleLabel("Enable notifications")
@@ -69,9 +72,10 @@ struct NotificationSettingsView: View {
                 .frame(maxWidth: .infinity)
                 .listRowInsets(EdgeInsets(top: 24, leading: 0, bottom: 24, trailing: 0))
                 .listRowBackground(Color.clear)
+            }
+            .scrollContentBackground(.hidden)
+            .iPadReadableContent()
         }
-        .scrollContentBackground(.hidden)
-        .background(OliloDarkGradientBackground())
         .tint(Color.oliloPurple)
         .navigationTitle("Status Updates")
         .toolbar {

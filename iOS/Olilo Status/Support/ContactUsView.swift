@@ -2,7 +2,10 @@ import SwiftUI
 
 struct ContactUsView: View {
     var body: some View {
-        Form {
+        ZStack {
+            OliloDarkGradientBackground()
+
+            Form {
             Section {
                 Link(destination: URL(string: "https://discord.gg/olilo")!) {
                     ContactAssetRowLabel(title: "Find us on Discord", imageName: "Discord")
@@ -35,9 +38,10 @@ struct ContactUsView: View {
                 .frame(maxWidth: .infinity)
                 .listRowInsets(EdgeInsets(top: 24, leading: 0, bottom: 24, trailing: 0))
                 .listRowBackground(Color.clear)
+            }
+            .scrollContentBackground(.hidden)
+            .iPadReadableContent()
         }
-        .scrollContentBackground(.hidden)
-        .background(OliloDarkGradientBackground())
         .navigationTitle("Contact Us")
         .toolbar {
             ToolbarItem(placement: .principal) {

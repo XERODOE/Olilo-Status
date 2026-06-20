@@ -1,5 +1,6 @@
 import Combine
 import SwiftUI
+import UIKit
 
 extension Color {
     static let oliloPurple = Color(red: 0.70, green: 0.28, blue: 1.0)
@@ -29,6 +30,11 @@ struct ContentView: View {
     @StateObject private var router = AppRouter.shared
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var isOnboardingPresented = false
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private var usesIPadLayout: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass == .regular
+    }
 
     var body: some View {
         TabView(selection: $router.selectedTab) {
@@ -60,12 +66,39 @@ struct ContentView: View {
                 isOnboardingPresented = true
             }
         }
-        .sheet(isPresented: $isOnboardingPresented) {
-            OnboardingView {
-                hasCompletedOnboarding = true
-                isOnboardingPresented = false
+        .modifier(
+            OnboardingPresenter(
+                isPresented: $isOnboardingPresented,
+                hasCompletedOnboarding: hasCompletedOnboarding,
+                usesIPadLayout: usesIPadLayout,
+                completionAction: completeOnboarding
+            )
+        )
+    }
+
+    private func completeOnboarding() {
+        hasCompletedOnboarding = true
+        isOnboardingPresented = false
+    }
+}
+
+private struct OnboardingPresenter: ViewModifier {
+    @Binding var isPresented: Bool
+    let hasCompletedOnboarding: Bool
+    let usesIPadLayout: Bool
+    let completionAction: () -> Void
+
+    func body(content: Content) -> some View {
+        if usesIPadLayout {
+            content.fullScreenCover(isPresented: $isPresented) {
+                OnboardingView(completionAction: completionAction)
+                    .interactiveDismissDisabled(!hasCompletedOnboarding)
             }
-            .interactiveDismissDisabled(!hasCompletedOnboarding)
+        } else {
+            content.sheet(isPresented: $isPresented) {
+                OnboardingView(completionAction: completionAction)
+                    .interactiveDismissDisabled(!hasCompletedOnboarding)
+            }
         }
     }
 }
