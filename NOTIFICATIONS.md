@@ -89,7 +89,7 @@ Each device stores the same preference shape on every platform:
   "incidents": true,        // new incidents + updates + resolutions
   "maintenance": true,      // scheduled maintenance
   "componentAlerts": false, // per-component status changes
-  "networks": ["Openreach", "CityFibre", "Freedom Fibre"] // filters component alerts; empty = all
+  "networks": ["Openreach", "CityFibre", "Freedom Fibre"] // filters incident, maintenance and component alerts; empty = all
 }
 ```
 

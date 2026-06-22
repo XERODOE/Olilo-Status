@@ -338,7 +338,7 @@ private val onboardingPages = listOf(
         icon = Icons.Filled.Notifications,
         highlights = listOf(
             "Enable alerts for incidents, maintenance, and component changes",
-            "Choose specific networks for component alerts",
+            "Choose specific networks for all status alerts",
             "Update your preferences at any time",
         ),
     ),
@@ -1633,6 +1633,9 @@ private fun NotificationSettingsScreen(navController: NavHostController) {
         }
     }
 
+    val hasEnabledNotificationType =
+        preferences.incidents || preferences.maintenance || preferences.componentAlerts
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
@@ -1714,7 +1717,7 @@ private fun NotificationSettingsScreen(navController: NavHostController) {
                     }
                 }
 
-                if (preferences.componentAlerts) {
+                if (hasEnabledNotificationType) {
                     item {
                         SettingsSection("Networks") {
                             networks.forEachIndexed { index, network ->

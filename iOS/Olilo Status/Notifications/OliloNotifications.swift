@@ -46,7 +46,7 @@ struct NotificationPreferences: Codable, Equatable {
     var incidents: Bool = true
     var maintenance: Bool = true
     var componentAlerts: Bool = false
-    /// Networks to receive component-level alerts for. Empty = all networks.
+    /// Networks to receive status, incident, and maintenance alerts for. Empty = all networks.
     var networks: [String] = []
 
     static let storageKey = "notificationPreferences"

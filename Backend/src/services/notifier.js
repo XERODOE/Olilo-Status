@@ -13,15 +13,22 @@ const providers = {
 
 // Decide whether a device, given its preferences, should receive this event.
 // `event.type` is one of 'incident' | 'maintenance' | 'component'.
+function matchesNetworkFilter(preferences, event) {
+  const networks = preferences.networks ?? [];
+  if (networks.length === 0) return true; // no filter = all networks
+  const affected = event.affected ?? [];
+  return affected.some((a) => networks.includes(a));
+}
+
 function wants(preferences, event) {
-  if (event.type === 'incident') return preferences.incidents !== false;
-  if (event.type === 'maintenance') return preferences.maintenance !== false;
+  if (event.type === 'incident') {
+    return preferences.incidents !== false && matchesNetworkFilter(preferences, event);
+  }
+  if (event.type === 'maintenance') {
+    return preferences.maintenance !== false && matchesNetworkFilter(preferences, event);
+  }
   if (event.type === 'component') {
-    if (!preferences.componentAlerts) return false;
-    const networks = preferences.networks ?? [];
-    if (networks.length === 0) return true; // no filter = all networks
-    const affected = event.affected ?? [];
-    return affected.some((a) => networks.includes(a));
+    return Boolean(preferences.componentAlerts) && matchesNetworkFilter(preferences, event);
   }
   return false;
 }

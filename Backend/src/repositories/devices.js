@@ -4,7 +4,8 @@
 import { query } from '../db/pool.js';
 
 // Default preferences applied when a device registers without specifying them.
-// `networks` filters component-level alerts; empty means "all networks".
+// `networks` filters incident, maintenance, and component alerts; empty means
+// "all networks".
 export const DEFAULT_PREFERENCES = {
   incidents: true,
   maintenance: true,
