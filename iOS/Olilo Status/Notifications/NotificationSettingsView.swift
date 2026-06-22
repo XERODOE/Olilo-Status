@@ -16,7 +16,7 @@ import SwiftUI
 struct NotificationSettingsView: View {
     @StateObject private var manager = PushManager.shared
 
-    /// Consumer-facing networks the user can filter component alerts by.
+    /// Consumer-facing networks the user can filter notifications by.
     private let networks = ["Openreach", "CityFibre", "Freedom Fibre"]
 
     var body: some View {
@@ -52,7 +52,7 @@ struct NotificationSettingsView: View {
                     Text("Choose which notices you get notified about.")
                 }
 
-                if manager.preferences.componentAlerts {
+                if hasEnabledNotificationType {
                     Section {
                         ForEach(networks, id: \.self) { network in
                             Toggle(isOn: networkBinding(network)) {
@@ -63,7 +63,7 @@ struct NotificationSettingsView: View {
                         Text("Networks")
                             .foregroundStyle(Color.secondary)
                     } footer: {
-                        Text("Choose which networks you get notifed about. With none selected you'll get alerts for all networks.")
+                        Text("Choose which networks you get notified about. With none selected you'll get alerts for all networks.")
                     }
                 }
             }
@@ -117,7 +117,11 @@ struct NotificationSettingsView: View {
         )
     }
 
-    /// Creates a binding that adds or removes a network from component alert preferences.
+    private var hasEnabledNotificationType: Bool {
+        manager.preferences.incidents || manager.preferences.maintenance || manager.preferences.componentAlerts
+    }
+
+    /// Creates a binding that adds or removes a network from notification preferences.
     private func networkBinding(_ network: String) -> Binding<Bool> {
         Binding(
             get: { manager.preferences.networks.contains(network) },

@@ -10,7 +10,7 @@ data class NotificationPreferences(
     val incidents: Boolean = true,
     val maintenance: Boolean = true,
     val componentAlerts: Boolean = false,
-    /** Networks to receive component-level alerts for. Empty = all networks. */
+    /** Networks to receive incident, maintenance, and component alerts for. Empty = all networks. */
     val networks: List<String> = emptyList(),
 )
 

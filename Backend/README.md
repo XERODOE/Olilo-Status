@@ -116,8 +116,8 @@ and reactivates it.
 ```
 
 `preferences` is optional and defaults to incidents + maintenance on, component
-alerts off. `networks` filters component-level alerts; an empty list means all
-networks.
+alerts off. `networks` filters incident, maintenance, and component alerts; an
+empty list means all networks.
 
 ### `PATCH /api/devices/:token/preferences`
 
