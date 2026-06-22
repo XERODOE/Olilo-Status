@@ -17,6 +17,10 @@ function matchesNetworkFilter(preferences, event) {
   const networks = preferences.networks ?? [];
   if (networks.length === 0) return true; // no filter = all networks
   const affected = event.affected ?? [];
+  // An event with no network tags (e.g. site-wide maintenance Instatus didn't
+  // attach components to) is treated as global, so a network filter never hides
+  // it - better to over-notify than miss a real outage.
+  if (affected.length === 0) return true;
   return affected.some((a) => networks.includes(a));
 }
 
