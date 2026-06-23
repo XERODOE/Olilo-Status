@@ -55,6 +55,7 @@ struct CreditsView: View {
                         .padding(.bottom, 24)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
                 .padding(.vertical)
                 .iPadReadableContent()
             }

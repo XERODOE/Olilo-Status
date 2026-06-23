@@ -97,6 +97,7 @@ enum class NoticeKind(val label: String) {
 }
 
 data class NoticeUpdate(
+    val timestamp: String?,
     val status: String,
     val message: String,
 )

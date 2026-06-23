@@ -21,6 +21,7 @@ struct StatusNotice: Identifiable {
 
     struct Update: Identifiable {
         let id = UUID()
+        let timestamp: Date?
         let status: String
         let message: String
     }
@@ -543,7 +544,8 @@ private final class AtomNoticeParser: NSObject, XMLParserDelegate {
             .flatMap { StatusNotice.NoticeKind(rawValue: $0) } ?? .notice
         let duration = value(after: "Duration:", in: text)
         let affected = value(after: "Affected Components:", in: text)
-        let updates = parseUpdates(fromHTML: entry.content)
+        let updates = parseUpdates(fromHTML: entry.content, referenceDate: entry.published ?? entry.updated)
+        let updateTimestamps = updates.compactMap(\.timestamp)
         let summary = updates.first?.message ?? text
         let id = entry.id.isEmpty ? "notice-\(entry.link?.absoluteString ?? entry.title)" : entry.id
 
@@ -551,8 +553,8 @@ private final class AtomNoticeParser: NSObject, XMLParserDelegate {
             id: id,
             title: entry.title,
             kind: kind,
-            published: entry.published,
-            updated: entry.updated,
+            published: updateTimestamps.min() ?? entry.published,
+            updated: updateTimestamps.max() ?? entry.updated,
             link: entry.link,
             duration: duration,
             affectedComponents: affected,
@@ -581,15 +583,17 @@ private final class AtomNoticeParser: NSObject, XMLParserDelegate {
     }
 
     /// Extracts status update rows from the notice HTML content.
-    private func parseUpdates(fromHTML html: String) -> [StatusNotice.Update] {
-        let pattern = #"<p>\s*<small>.*?</small>\s*<br\s*/?>\s*<strong>(.*?)</strong>\s*-\s*(.*?)</p>"#
+    private func parseUpdates(fromHTML html: String, referenceDate: Date?) -> [StatusNotice.Update] {
+        let pattern = #"<p>\s*<small>(.*?)</small>\s*<br\s*/?>\s*<strong>(.*?)</strong>\s*-\s*(.*?)</p>"#
         guard let regex = try? NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]) else { return [] }
         let nsRange = NSRange(html.startIndex..<html.endIndex, in: html)
         return regex.matches(in: html, range: nsRange).compactMap { match in
             guard
-                let statusRange = Range(match.range(at: 1), in: html),
-                let messageRange = Range(match.range(at: 2), in: html)
+                let timestampRange = Range(match.range(at: 1), in: html),
+                let statusRange = Range(match.range(at: 2), in: html),
+                let messageRange = Range(match.range(at: 3), in: html)
             else { return nil }
+            let timestamp = parseUpdateTimestamp(String(html[timestampRange]), referenceDate: referenceDate)
             let status = String(html[statusRange])
                 .htmlToPlainText()
                 .decodingHTMLEntities()
@@ -601,8 +605,42 @@ private final class AtomNoticeParser: NSObject, XMLParserDelegate {
                 .trimmingCharacters(in: .whitespacesAndNewlines)
                 .trimmingCharacters(in: CharacterSet(charactersIn: "."))
             guard !status.isEmpty, !message.isEmpty else { return nil }
-            return StatusNotice.Update(status: status, message: message)
+            return StatusNotice.Update(timestamp: timestamp, status: status, message: message)
         }
+    }
+
+    /// Parses the feed's update row timestamp, which omits the year.
+    private func parseUpdateTimestamp(_ html: String, referenceDate: Date?) -> Date? {
+        let text = html
+            .htmlToPlainText()
+            .decodingHTMLEntities()
+            .replacingOccurrences(of: ",", with: "")
+            .normalizingWhitespace()
+        let pattern = #"^([A-Za-z]{3})\s+(\d{1,2})\s+(\d{1,2}):(\d{2}):(\d{2})\s+GMT([+-]\d{1,2})$"#
+        let monthFormatter = DateFormatter()
+        monthFormatter.locale = Locale(identifier: "en_US_POSIX")
+
+        guard
+            let regex = try? NSRegularExpression(pattern: pattern),
+            let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..<text.endIndex, in: text)),
+            let monthRange = Range(match.range(at: 1), in: text),
+            let dayRange = Range(match.range(at: 2), in: text),
+            let hourRange = Range(match.range(at: 3), in: text),
+            let minuteRange = Range(match.range(at: 4), in: text),
+            let secondRange = Range(match.range(at: 5), in: text),
+            let offsetRange = Range(match.range(at: 6), in: text),
+            let month = monthFormatter.shortMonthSymbols.firstIndex(of: String(text[monthRange])),
+            let day = Int(text[dayRange]),
+            let hour = Int(text[hourRange]),
+            let minute = Int(text[minuteRange]),
+            let second = Int(text[secondRange]),
+            let offsetHours = Int(text[offsetRange])
+        else { return nil }
+
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: offsetHours * 60 * 60) ?? .gmt
+        let year = referenceDate.map { calendar.component(.year, from: $0) } ?? calendar.component(.year, from: .now)
+        return calendar.date(from: DateComponents(year: year, month: month + 1, day: day, hour: hour, minute: minute, second: second))
     }
 }
 
