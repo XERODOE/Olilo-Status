@@ -1525,11 +1525,10 @@ private fun SettingsScreen(navController: NavHostController, onStartOnboarding: 
             item {
                 SettingsSection("Compliance") {
                     SettingsLinkRow("Privacy Policy", "https://olilo.co.uk/privacy", Icons.Filled.Description, navController)
-                    SettingsLinkRow("Terms & Conditions", "https://olilo.co.uk/terms", Icons.Filled.Description, navController)
                     SettingsLinkRow(
-                        "Accessibility Statement",
-                        "https://olilo.co.uk/accessibility",
-                        Icons.Filled.Info,
+                        "Terms & Conditions",
+                        "https://olilo.co.uk/terms",
+                        Icons.Filled.Description,
                         navController,
                         showDivider = false,
                     )

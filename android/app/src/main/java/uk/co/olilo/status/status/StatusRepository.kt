@@ -8,6 +8,12 @@ import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.LocalDateTime
+import java.time.Month
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class StatusRepository {
     private val json = Json { ignoreUnknownKeys = true }
@@ -115,7 +121,8 @@ private class AtomNoticeParser {
     /** Converts a parsed Atom entry into the app notice model. */
     private fun makeNotice(entry: Entry): StatusNotice {
         val text = entry.content.htmlToPlainText().normalizingWhitespace()
-        val updates = parseUpdates(entry.content)
+        val updates = parseUpdates(entry.content, entry.published.ifBlank { entry.updated })
+        val updateTimestamps = updates.mapNotNull { it.timestamp }
         val kind = NoticeKind.from(valueAfter("Type:", text))
         val id = entry.link?.substringAfterLast('/') ?: entry.id
 
@@ -123,8 +130,8 @@ private class AtomNoticeParser {
             id = id,
             title = entry.title.htmlToPlainText(),
             kind = kind,
-            published = entry.published.ifBlank { null },
-            updated = entry.updated.ifBlank { null },
+            published = updateTimestamps.minOrNull() ?: entry.published.ifBlank { null },
+            updated = updateTimestamps.maxOrNull() ?: entry.updated.ifBlank { null },
             link = entry.link,
             duration = valueAfter("Duration:", text),
             affectedComponents = valueAfter("Affected Components:", text),
@@ -148,19 +155,45 @@ private class AtomNoticeParser {
     }
 
     /** Extracts update rows from the notice HTML content. */
-    private fun parseUpdates(html: String): List<NoticeUpdate> {
+    private fun parseUpdates(html: String, referenceDate: String): List<NoticeUpdate> {
         val pattern = Regex(
-            """<p>\s*<small>.*?</small>\s*<br\s*/?>\s*<strong>(.*?)</strong>\s*-\s*(.*?)</p>""",
+            """<p>\s*<small>(.*?)</small>\s*<br\s*/?>\s*<strong>(.*?)</strong>\s*-\s*(.*?)</p>""",
             setOf(RegexOption.DOT_MATCHES_ALL),
         )
         return pattern.findAll(html).mapNotNull { match ->
-            val status = match.groupValues[1].htmlToPlainText().normalizingWhitespace()
-            val message = match.groupValues[2]
+            val timestamp = parseUpdateTimestamp(match.groupValues[1], referenceDate)
+            val status = match.groupValues[2].htmlToPlainText().normalizingWhitespace()
+            val message = match.groupValues[3]
                 .htmlToPlainText()
                 .normalizingWhitespace()
                 .trimEnd('.')
-            if (status.isBlank() || message.isBlank()) null else NoticeUpdate(status, message)
+            if (status.isBlank() || message.isBlank()) null else NoticeUpdate(timestamp, status, message)
         }.toList()
+    }
+
+    /** Parses the feed's update row timestamp, which omits the year. */
+    private fun parseUpdateTimestamp(html: String, referenceDate: String): String? {
+        val text = html.htmlToPlainText()
+            .replace(",", "")
+            .normalizingWhitespace()
+        val match = Regex("""^([A-Za-z]{3})\s+(\d{1,2})\s+(\d{1,2}):(\d{2}):(\d{2})\s+GMT([+-]\d{1,2})$""")
+            .matchEntire(text)
+            ?: return null
+        val referenceYear = runCatching { OffsetDateTime.parse(referenceDate).year }
+            .getOrDefault(OffsetDateTime.now(ZoneOffset.UTC).year)
+        val month = Month.values().firstOrNull {
+            it.getDisplayName(java.time.format.TextStyle.SHORT, Locale.US).equals(match.groupValues[1], ignoreCase = true)
+        } ?: return null
+        val offset = ZoneOffset.ofHours(match.groupValues[6].toInt())
+        val dateTime = LocalDateTime.of(
+            referenceYear,
+            month,
+            match.groupValues[2].toInt(),
+            match.groupValues[3].toInt(),
+            match.groupValues[4].toInt(),
+            match.groupValues[5].toInt(),
+        )
+        return dateTime.atOffset(offset).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
     }
 
     private data class Entry(

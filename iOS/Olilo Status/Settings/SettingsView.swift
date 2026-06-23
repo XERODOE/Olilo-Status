@@ -70,12 +70,6 @@ struct SettingsView: View {
                     }
                     .buttonStyle(.plain)
 
-                    Button {
-                        presentedWebPage = .accessibility
-                    } label: {
-                        SettingsRowLabel(title: "Accessibility Statement", systemImage: "accessibility")
-                    }
-                    .buttonStyle(.plain)
                 }
 
                 Section("Version") {
@@ -172,7 +166,6 @@ private struct SettingsWebPagePresenter: ViewModifier {
 private enum SettingsWebPage: Identifiable {
     case privacyPolicy
     case termsAndConditions
-    case accessibility
 
     var id: String { title }
 
@@ -180,7 +173,6 @@ private enum SettingsWebPage: Identifiable {
         switch self {
         case .privacyPolicy: return "Privacy Policy"
         case .termsAndConditions: return "Terms & Conditions"
-        case .accessibility: return "Accessibility"
         }
     }
 
@@ -188,7 +180,6 @@ private enum SettingsWebPage: Identifiable {
         switch self {
         case .privacyPolicy: return URL(string: "https://olilo.co.uk/privacy")!
         case .termsAndConditions: return URL(string: "https://olilo.co.uk/terms")!
-        case .accessibility: return URL(string: "https://olilo.co.uk/accessibility")!
         }
     }
 }
