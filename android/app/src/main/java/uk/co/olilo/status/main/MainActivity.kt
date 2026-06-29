@@ -64,6 +64,7 @@ import androidx.compose.material.icons.filled.ReportProblem
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Work
@@ -127,6 +128,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import uk.co.olilo.status.status.Incident
 import uk.co.olilo.status.status.Maintenance
 import uk.co.olilo.status.status.NoticeKind
@@ -222,6 +225,7 @@ private fun OliloApp(launchRequest: LaunchRequest) {
         Scaffold(
             containerColor = Color.Transparent,
             contentColor = Color.White,
+            contentWindowInsets = WindowInsets(0.dp),
             bottomBar = {
                 if (Route.entries.any { it.path == currentRoute }) {
                     NavigationBar(containerColor = Color(0xF20B0612)) {
@@ -518,12 +522,14 @@ private fun OliloTopBar(
     title: String,
     onRefresh: (() -> Unit)? = null,
     onConfigure: (() -> Unit)? = null,
+    leadingIcon: ImageVector = Icons.Filled.Tune,
+    leadingContentDescription: String = "Edit status components",
     navController: NavHostController? = null,
 ) {
     val density = LocalDensity.current
     val statusBarTopPadding = with(density) {
         WindowInsets.statusBars.getTop(this).toDp()
-    }.coerceAtMost(32.dp)
+    }
     val toolbarContentHeight = 48.dp
 
     Box(
@@ -549,8 +555,8 @@ private fun OliloTopBar(
                 modifier = Modifier.align(Alignment.CenterStart),
             ) {
                 Icon(
-                    Icons.Filled.Tune,
-                    contentDescription = "Edit status components",
+                    leadingIcon,
+                    contentDescription = leadingContentDescription,
                     tint = oliloPurple,
                 )
             }
@@ -1220,10 +1226,22 @@ private fun ComponentRow(component: StatusComponent, showGroup: Boolean) {
 @Composable
 private fun NoticesScreen(navController: NavHostController, viewModel: NoticesViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val filtered = state.selectedKind?.let { selected -> state.notices.filter { it.kind == selected } } ?: state.notices
+    val filtered = state.notices
+        .filter { notice -> state.selectedKind == null || notice.kind == state.selectedKind }
+        .filter { notice -> !state.hideOldNotices || !notice.isOlderThan30Days() }
 
     Column(Modifier.fillMaxSize()) {
-        OliloTopBar(title = "Notices", onRefresh = viewModel::refresh)
+        OliloTopBar(
+            title = "Notices",
+            onRefresh = viewModel::refresh,
+            onConfigure = viewModel::toggleOldNotices,
+            leadingIcon = if (state.hideOldNotices) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+            leadingContentDescription = if (state.hideOldNotices) {
+                "Show notices older than 30 days"
+            } else {
+                "Hide notices older than 30 days"
+            },
+        )
         if ((state.isLoading && state.notices.isEmpty()) || state.errorMessage != null) {
             LoadingOrError(
                 loadingText = "Loading notices...",
@@ -1259,6 +1277,13 @@ private fun NoticesScreen(navController: NavHostController, viewModel: NoticesVi
             items(filtered, key = { "history-notice-${it.id}" }) { NoticeHistoryCard(it, navController) }
         }
     }
+}
+
+/** Returns true when a historical notice is older than the default history window. */
+private fun StatusNotice.isOlderThan30Days(now: Instant = Instant.now()): Boolean {
+    val timestamp = updated ?: published ?: return false
+    val noticeDate = runCatching { Instant.parse(timestamp) }.getOrNull() ?: return false
+    return noticeDate.isBefore(now.minus(30, ChronoUnit.DAYS))
 }
 
 /** Renders an active incident notice card. */
