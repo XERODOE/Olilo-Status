@@ -19,13 +19,24 @@
     {
       "layers" : [
         {
+          "image-name" : "olilostatus-guage.svg",
+          "name" : "olilostatus-guage",
+          "position" : {
+            "scale" : 0.4,
+            "translation-in-points" : [
+              0,
+              188.9609375
+            ]
+          }
+        },
+        {
           "image-name" : "olilo-logo.C34wzJbM.png",
           "name" : "olilo-logo.C34wzJbM",
           "position" : {
             "scale" : 0.75,
             "translation-in-points" : [
               -0.375,
-              -0.375
+              -116.765625
             ]
           }
         }
