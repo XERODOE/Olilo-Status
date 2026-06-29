@@ -16,8 +16,20 @@ function hash(...parts) {
   return createHash('sha1').update(parts.join('|')).digest('hex');
 }
 
+// Instatus reports component statuses as single concatenated words
+// (e.g. PARTIALOUTAGE) with no separator, so map the known values explicitly.
+const STATUS_LABELS = {
+  OPERATIONAL: 'Operational',
+  UNDERMAINTENANCE: 'Under maintenance',
+  DEGRADEDPERFORMANCE: 'Degraded performance',
+  PARTIALOUTAGE: 'Partial outage',
+  MAJOROUTAGE: 'Major outage',
+};
+
 function humanStatus(status) {
   if (!status) return '';
+  const known = STATUS_LABELS[status.toUpperCase()];
+  if (known) return known;
   return status
     .toLowerCase()
     .replace(/_/g, ' ')
