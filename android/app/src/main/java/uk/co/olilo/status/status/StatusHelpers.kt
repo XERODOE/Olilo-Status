@@ -16,7 +16,7 @@ val oliloBackgroundBottom = Color(0xFF4D147A)
 fun statusSeverity(status: String): Int = when (status.uppercase(Locale.UK)) {
     "UP", "OPERATIONAL", "RESOLVED", "COMPLETED" -> 0
     "UNDERMAINTENANCE", "MONITORING", "NOTSTARTEDYET" -> 1
-    "DEGRADEDPERFORMANCE", "DEGRADED_PERFORMANCE", "IDENTIFIED" -> 2
+    "HASISSUES", "HAS_ISSUES", "DEGRADEDPERFORMANCE", "DEGRADED_PERFORMANCE", "IDENTIFIED" -> 2
     "PARTIALOUTAGE", "PARTIAL_OUTAGE", "INVESTIGATING" -> 3
     "MAJOROUTAGE", "MAJOR_OUTAGE" -> 4
     else -> 2
@@ -26,7 +26,7 @@ fun statusSeverity(status: String): Int = when (status.uppercase(Locale.UK)) {
 fun statusColor(status: String): Color = when (status.uppercase(Locale.UK)) {
     "UP", "OPERATIONAL", "RESOLVED", "COMPLETED" -> oliloPurple
     "UNDERMAINTENANCE", "MONITORING", "NOTSTARTEDYET" -> Color(0xFF64B5F6)
-    "DEGRADEDPERFORMANCE", "DEGRADED_PERFORMANCE", "IDENTIFIED" -> Color(0xFFFFB74D)
+    "HASISSUES", "HAS_ISSUES", "DEGRADEDPERFORMANCE", "DEGRADED_PERFORMANCE", "IDENTIFIED" -> Color(0xFFFFB74D)
     "PARTIALOUTAGE", "PARTIAL_OUTAGE", "INVESTIGATING" -> Color(0xFFFFE066)
     "MAJOROUTAGE", "MAJOR_OUTAGE" -> Color(0xFFFF5252)
     else -> Color(0xFFBDB3C7)
@@ -36,6 +36,7 @@ fun statusColor(status: String): Color = when (status.uppercase(Locale.UK)) {
 fun readableStatus(status: String): String = when (status.uppercase(Locale.UK)) {
     "UP" -> "Up"
     "OPERATIONAL" -> "Operational"
+    "HASISSUES", "HAS_ISSUES" -> "Has issues"
     "UNDERMAINTENANCE" -> "Under maintenance"
     "DEGRADEDPERFORMANCE", "DEGRADED_PERFORMANCE" -> "Degraded performance"
     "PARTIALOUTAGE", "PARTIAL_OUTAGE" -> "Partial outage"
