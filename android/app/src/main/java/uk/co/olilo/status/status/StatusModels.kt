@@ -117,6 +117,7 @@ data class NoticesScreenState(
     val activeMaintenances: List<Maintenance> = emptyList(),
     val notices: List<StatusNotice> = emptyList(),
     val selectedKind: NoticeKind? = null,
+    val hideOldNotices: Boolean = true,
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
     val lastRefreshedMillis: Long? = null,

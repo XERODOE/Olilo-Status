@@ -62,7 +62,14 @@ class NoticesViewModel(
         _state.update { it.copy(isLoading = true, errorMessage = null) }
         refreshJob = viewModelScope.launch {
             runCatching { repository.fetchNotices() }
-                .onSuccess { next -> _state.update { next.copy(selectedKind = it.selectedKind) } }
+                .onSuccess { next ->
+                    _state.update {
+                        next.copy(
+                            selectedKind = it.selectedKind,
+                            hideOldNotices = it.hideOldNotices,
+                        )
+                    }
+                }
                 .onFailure { error ->
                     if (error is CancellationException) return@launch
                     _state.update {
@@ -78,5 +85,10 @@ class NoticesViewModel(
     /** Updates the active notice kind filter. */
     fun selectKind(kind: NoticeKind?) {
         _state.update { it.copy(selectedKind = kind) }
+    }
+
+    /** Toggles whether notice history older than 30 days is shown. */
+    fun toggleOldNotices() {
+        _state.update { it.copy(hideOldNotices = !it.hideOldNotices) }
     }
 }

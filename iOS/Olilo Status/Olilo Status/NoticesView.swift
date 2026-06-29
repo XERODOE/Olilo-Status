@@ -44,6 +44,7 @@ final class NoticesViewModel: ObservableObject {
     @Published var activeMaintenances: [Maintenance] = []
     @Published var notices: [StatusNotice] = []
     @Published var selectedKind: StatusNotice.NoticeKind?
+    @Published var hidesNoticesOlderThan30Days = true
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var lastRefreshed: Date?
@@ -52,8 +53,13 @@ final class NoticesViewModel: ObservableObject {
     private let noticesAPI = NoticesAPI()
 
     var filteredNotices: [StatusNotice] {
-        guard let selectedKind else { return notices }
-        return notices.filter { $0.kind == selectedKind }
+        notices
+            .filter { notice in
+                selectedKind == nil || notice.kind == selectedKind
+            }
+            .filter { notice in
+                !hidesNoticesOlderThan30Days || !notice.isOlderThan30Days
+            }
     }
 
     /// Refreshes active notices and historical feed entries for the notices screen.
@@ -82,6 +88,18 @@ private extension Incident {
 
 private extension Maintenance {
     var currentNoticeListID: String { "current-maintenance-\(id)" }
+}
+
+private extension StatusNotice {
+    var isOlderThan30Days: Bool {
+        guard
+            let noticeDate = updated ?? published,
+            let cutoffDate = Calendar.current.date(byAdding: .day, value: -30, to: .now)
+        else {
+            return false
+        }
+        return noticeDate < cutoffDate
+    }
 }
 
 struct NoticesView: View {
@@ -145,6 +163,20 @@ struct NoticesView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     OliloToolbarLogo()
+                }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        model.hidesNoticesOlderThan30Days.toggle()
+                    } label: {
+                        Image(systemName: model.hidesNoticesOlderThan30Days ? "eye.slash" : "eye")
+                            .foregroundStyle(Color.oliloPurple)
+                    }
+                    .tint(Color.oliloPurple)
+                    .accessibilityLabel(
+                        model.hidesNoticesOlderThan30Days
+                        ? "Show notices older than 30 days"
+                        : "Hide notices older than 30 days"
+                    )
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
