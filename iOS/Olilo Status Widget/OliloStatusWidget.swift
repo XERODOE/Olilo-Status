@@ -173,9 +173,45 @@ struct OliloStatusEntry: TimelineEntry {
     let source: WidgetStatusSource
     let status: String
 
-    var isOnline: Bool {
-        let normalizedStatus = status.uppercased()
-        return normalizedStatus == "UP" || normalizedStatus == "OPERATIONAL"
+    var displayState: WidgetStatusDisplayState {
+        WidgetStatusDisplayState(status: status)
+    }
+}
+
+enum WidgetStatusDisplayState {
+    case online
+    case warning
+    case offline
+
+    init(status: String) {
+        switch status.uppercased() {
+        case "UP", "OPERATIONAL":
+            self = .online
+        case "HASISSUES", "HAS_ISSUES", "DEGRADEDPERFORMANCE", "DEGRADED_PERFORMANCE", "PARTIALOUTAGE", "PARTIAL_OUTAGE":
+            self = .warning
+        default:
+            self = .offline
+        }
+    }
+
+    var statusText: String {
+        switch self {
+        case .online, .warning:
+            return "Online"
+        case .offline:
+            return "Offline"
+        }
+    }
+
+    var statusColor: Color {
+        switch self {
+        case .online:
+            return .green
+        case .warning:
+            return .orange
+        case .offline:
+            return .red
+        }
     }
 }
 
@@ -405,11 +441,11 @@ struct OliloStatusWidgetView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     private var statusText: String {
-        entry.isOnline ? "Online" : "Offline"
+        entry.displayState.statusText
     }
 
     private var statusColor: Color {
-        entry.isOnline ? .green : .red
+        entry.displayState.statusColor
     }
 
     private var isDarkMode: Bool {
@@ -496,15 +532,15 @@ struct OliloLockScreenStatusWidgetView: View {
     let entry: OliloStatusEntry
 
     private var statusText: String {
-        entry.isOnline ? "Online" : "Offline"
+        entry.displayState.statusText
     }
 
     private var statusColor: Color {
-        entry.isOnline ? .green : .red
+        entry.displayState.statusColor
     }
 
     private var backdropColor: Color {
-        entry.isOnline ? .green.opacity(0.18) : .red.opacity(0.18)
+        entry.displayState.statusColor.opacity(0.18)
     }
 
     var body: some View {

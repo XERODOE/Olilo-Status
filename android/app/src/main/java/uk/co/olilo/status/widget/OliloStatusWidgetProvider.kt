@@ -48,9 +48,8 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
 
             thread(name = "OliloStatusWidgetRefresh") {
                 val component = fetchWidgetComponent(sourceName)
-                val isOnline = component?.status?.isWidgetOnline() == true
-                val statusText =
-                    if (component == null) "Unavailable" else if (isOnline) "Online" else "Offline"
+                val displayState = component?.status?.toWidgetDisplayState()
+                val statusText = displayState?.statusText ?: "Unavailable"
                 val sourceText = component?.name ?: sourceName
                 updateWidget(
                     context,
@@ -58,7 +57,7 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
                     appWidgetId,
                     statusText,
                     sourceText,
-                    isOnline
+                    displayState,
                 )
             }
         }
@@ -70,13 +69,9 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
             appWidgetId: Int,
             statusText: String,
             sourceText: String,
-            isOnline: Boolean?,
+            displayState: WidgetStatusDisplayState?,
         ) {
-            val statusColor = when (isOnline) {
-                true -> 0xFF4CAF50.toInt()
-                false -> 0xFFFF5252.toInt()
-                null -> 0xFFBDB3C7.toInt()
-            }
+            val statusColor = displayState?.statusColor ?: 0xFFBDB3C7.toInt()
             val views = RemoteViews(context.packageName, R.layout.olilo_status_widget).apply {
                 setTextViewText(R.id.widget_status, statusText)
                 setTextViewText(R.id.widget_source, sourceText)
@@ -133,12 +128,26 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
         /** Builds the preference key for a widget source selection. */
         private fun sourceKey(appWidgetId: Int): String = "source_$appWidgetId"
 
-        /** Returns whether a backend status should be displayed as online in the widget. */
-        private fun String.isWidgetOnline(): Boolean = uppercase(Locale.UK).let { status ->
-            status == "UP" || status == "OPERATIONAL"
+        /** Maps backend statuses into the widget's online/offline text and progress color. */
+        private fun String.toWidgetDisplayState(): WidgetStatusDisplayState = when (uppercase(Locale.UK)) {
+            "UP", "OPERATIONAL" -> WidgetStatusDisplayState.Online
+            "HASISSUES", "HAS_ISSUES",
+            "DEGRADEDPERFORMANCE", "DEGRADED_PERFORMANCE",
+            "PARTIALOUTAGE", "PARTIAL_OUTAGE"
+            -> WidgetStatusDisplayState.Warning
+            else -> WidgetStatusDisplayState.Offline
         }
 
         private const val COMPONENTS_URL = "https://status.olilo.co.uk/v3/components.json"
         private const val WIDGET_PREFERENCES_NAME = "olilo_status_widget_preferences"
     }
+}
+
+private enum class WidgetStatusDisplayState(
+    val statusText: String,
+    val statusColor: Int,
+) {
+    Online("Online", 0xFF4CAF50.toInt()),
+    Warning("Online", 0xFFFF9800.toInt()),
+    Offline("Offline", 0xFFFF5252.toInt()),
 }
