@@ -133,7 +133,7 @@ class OliloStatusWidgetProvider : AppWidgetProvider() {
             "UP", "OPERATIONAL" -> WidgetStatusDisplayState.Online
             "HASISSUES", "HAS_ISSUES",
             "DEGRADEDPERFORMANCE", "DEGRADED_PERFORMANCE",
-            "PARTIALOUTAGE", "PARTIAL_OUTAGE"
+            "PARTIALOUTAGE", "PARTIAL_OUTAGE", "UNDERMAINTENANCE", "UNDER_MAINTENANCE"
             -> WidgetStatusDisplayState.Warning
             else -> WidgetStatusDisplayState.Offline
         }

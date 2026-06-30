@@ -187,7 +187,7 @@ enum WidgetStatusDisplayState {
         switch status.uppercased() {
         case "UP", "OPERATIONAL":
             self = .online
-        case "HASISSUES", "HAS_ISSUES", "DEGRADEDPERFORMANCE", "DEGRADED_PERFORMANCE", "PARTIALOUTAGE", "PARTIAL_OUTAGE":
+        case "HASISSUES", "HAS_ISSUES", "DEGRADEDPERFORMANCE", "DEGRADED_PERFORMANCE", "PARTIALOUTAGE", "PARTIAL_OUTAGE", "UNDERMAINTENANCE", "UNDER_MAINTENANCE":
             self = .warning
         default:
             self = .offline
