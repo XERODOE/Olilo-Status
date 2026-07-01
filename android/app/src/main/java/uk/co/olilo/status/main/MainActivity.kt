@@ -1,6 +1,7 @@
 package uk.co.olilo.status.main
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -93,6 +94,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -152,6 +154,8 @@ import uk.co.olilo.status.status.oliloPurple
 import uk.co.olilo.status.status.readableStatus
 import uk.co.olilo.status.status.statusColor
 import uk.co.olilo.status.status.statusSeverity
+import androidx.core.content.edit
+import androidx.core.net.toUri
 
 class MainActivity : ComponentActivity() {
     private var launchRequest by mutableStateOf(LaunchRequest(Route.Status.path, 0))
@@ -301,9 +305,9 @@ private fun loadHasCompletedOnboarding(context: Context): Boolean =
 /** Persists whether the first-run onboarding tutorial has been completed. */
 private fun saveHasCompletedOnboarding(context: Context, hasCompleted: Boolean) {
     context.getSharedPreferences(ONBOARDING_PREFERENCES_NAME, Context.MODE_PRIVATE)
-        .edit()
-        .putBoolean(HAS_COMPLETED_ONBOARDING_KEY, hasCompleted)
-        .apply()
+        .edit {
+            putBoolean(HAS_COMPLETED_ONBOARDING_KEY, hasCompleted)
+        }
 }
 
 /** Describes one onboarding step and the short checklist shown on that page. */
@@ -365,7 +369,7 @@ private fun OnboardingScreen(
     onComplete: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var selectedPage by remember { mutableStateOf(0) }
+    var selectedPage by remember { mutableIntStateOf(0) }
     val page = onboardingPages[selectedPage]
     val isLastPage = selectedPage == onboardingPages.lastIndex
 
@@ -735,22 +739,56 @@ private fun loadComponentDisplayPreferences(context: Context): ComponentDisplayP
 /** Persists status component visibility and ordering preferences. */
 private fun saveComponentDisplayPreferences(context: Context, preferences: ComponentDisplayPreferences) {
     context.getSharedPreferences(COMPONENT_PREFERENCES_NAME, Context.MODE_PRIVATE)
-        .edit()
-        .putStringSet(HIDDEN_COMPONENT_IDS_KEY, preferences.hiddenComponentIds.toMutableSet())
-        .putString(ORDERED_COMPONENT_IDS_KEY, preferences.orderedComponentIds.joinToString("|"))
-        .apply()
+        .edit {
+            putStringSet(HIDDEN_COMPONENT_IDS_KEY, preferences.hiddenComponentIds.toMutableSet())
+                .putString(
+                    ORDERED_COMPONENT_IDS_KEY,
+                    preferences.orderedComponentIds.joinToString("|")
+                )
+        }
 }
 
 /** Returns affected components after applying display preferences. */
 private fun visibleAffectedComponents(
     components: List<StatusComponent>,
     preferences: ComponentDisplayPreferences,
-): List<StatusComponent> = components
+): List<StatusComponent> = preferences.orderedComponents(components)
     .filter { statusSeverity(it.status) > 0 }
     .filter { component ->
         component.id !in preferences.hiddenComponentIds
     }
-    .sortedByDescending { statusSeverity(it.status) }
+
+/** Returns active incidents after applying display preferences to clearly referenced components. */
+private fun visibleIncidents(
+    incidents: List<Incident>,
+    components: List<StatusComponent>,
+    preferences: ComponentDisplayPreferences,
+): List<Incident> {
+    val visibleComponents = components.filterNot { it.id in preferences.hiddenComponentIds }
+    val hiddenComponents = components.filter { it.id in preferences.hiddenComponentIds }
+    return incidents.filter { incident ->
+        val matchesVisibleComponent = visibleComponents.any { incident.references(it) }
+        val matchesHiddenComponent = hiddenComponents.any { incident.references(it) }
+        matchesVisibleComponent || !matchesHiddenComponent
+    }
+}
+
+/** Returns whether the incident text clearly references a component name. */
+private fun Incident.references(component: StatusComponent): Boolean =
+    listOfNotNull(name, description).any { text ->
+        text.referencesComponentName(component.name)
+    }
+
+/** Matches multi-word component names as phrases and short names as whole tokens. */
+private fun String.referencesComponentName(componentName: String): Boolean {
+    val normalizedName = componentName.lowercase()
+    val normalizedText = lowercase()
+    if (normalizedName.isBlank()) return false
+    if (' ' in normalizedName) return normalizedName in normalizedText
+    return normalizedText
+        .split(Regex("[^a-z0-9]+"))
+        .any { it == normalizedName }
+}
 
 /** Renders the main status dashboard screen. */
 @Composable
@@ -786,6 +824,7 @@ private fun StatusScreen(navController: NavHostController, viewModel: StatusView
         val componentGroups = groupedComponents(state.components)
         val visibleComponentGroups = displayPreferences.visibleGroups(componentGroups)
         val visibleAffected = visibleAffectedComponents(state.components, displayPreferences)
+        val visibleIncidents = visibleIncidents(state.incidents, state.components, displayPreferences)
         val visibleComponentCount = visibleComponentGroups.sumOf { it.allComponents.size }
 
         if (showComponentEditor) {
@@ -808,6 +847,7 @@ private fun StatusScreen(navController: NavHostController, viewModel: StatusView
                         state = state,
                         componentCount = visibleComponentCount,
                         affectedCount = visibleAffected.size,
+                        incidentCount = visibleIncidents.size,
                         navController = navController,
                     )
                 }
@@ -824,9 +864,9 @@ private fun StatusScreen(navController: NavHostController, viewModel: StatusView
                 }
             }
 
-            if (state.incidents.isNotEmpty()) {
-                item { SectionHeader("Active Incidents", state.incidents.size) }
-                items(state.incidents, key = { it.id }) { incident -> IncidentCard(incident, navController) }
+            if (visibleIncidents.isNotEmpty()) {
+                item { SectionHeader("Active Incidents", visibleIncidents.size) }
+                items(visibleIncidents, key = { it.id }) { incident -> IncidentCard(incident, navController) }
             }
 
             if (state.maintenances.isNotEmpty()) {
@@ -1054,6 +1094,7 @@ private fun OverviewCard(
     state: StatusScreenState,
     componentCount: Int,
     affectedCount: Int,
+    incidentCount: Int,
     navController: NavHostController,
 ) {
     StatusCard {
@@ -1077,7 +1118,7 @@ private fun OverviewCard(
                 MetricTile("Affected", affectedCount.toString(), Modifier.weight(1f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                MetricTile("Incidents", state.incidents.size.toString(), Modifier.weight(1f))
+                MetricTile("Incidents", incidentCount.toString(), Modifier.weight(1f))
                 MetricTile("Maintenance", state.maintenances.size.toString(), Modifier.weight(1f))
             }
 
@@ -1838,7 +1879,7 @@ private fun SettingsExternalRow(
         title = title,
         icon = icon,
         onClick = {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+            context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
         },
         logoResId = logoResId,
         showDivider = showDivider,
@@ -1945,6 +1986,7 @@ private fun SettingsRow(
 }
 
 /** Displays an in-app WebView page with a top bar. */
+@SuppressLint("SetJavaScriptEnabled")
 @Composable
 private fun WebPage(navController: NavHostController, title: String, url: String) {
     Column(Modifier.fillMaxSize()) {

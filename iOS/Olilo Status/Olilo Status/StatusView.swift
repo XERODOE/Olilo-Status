@@ -15,6 +15,32 @@ struct Incident: Identifiable, Decodable {
 
     var title: String { name }
     var displayDate: Date? { updatedAt ?? started }
+
+    /// Returns whether the incident text clearly references a component name.
+    func references(component: StatusComponent) -> Bool {
+        [name, description]
+            .compactMap { $0 }
+            .contains { text in
+                text.referencesComponentName(component.name)
+            }
+    }
+}
+
+private extension String {
+    /// Matches multi-word component names as phrases and short names as whole tokens.
+    func referencesComponentName(_ componentName: String) -> Bool {
+        let normalizedName = componentName.lowercased()
+        let normalizedText = lowercased()
+        guard !normalizedName.isEmpty else { return false }
+
+        if normalizedName.contains(" ") {
+            return normalizedText.contains(normalizedName)
+        }
+
+        return normalizedText
+            .split { !$0.isLetter && !$0.isNumber }
+            .contains { $0 == normalizedName }
+    }
 }
 
 struct Maintenance: Identifiable, Decodable {
@@ -241,10 +267,24 @@ final class StatusViewModel: ObservableObject {
         preferences.visibleGroups(from: componentGroups)
     }
 
-    /// Returns affected components that are not hidden by display preferences.
+    /// Returns affected components after applying the user's component visibility and order preferences.
     func visibleAffectedComponents(using preferences: StatusComponentDisplayPreferences) -> [StatusComponent] {
-        affectedComponents.filter { component in
-            !preferences.hiddenComponentIDs.contains(component.id)
+        preferences.orderedComponents(from: components)
+            .filter { statusSeverity($0.status) > 0 }
+            .filter { component in
+                !preferences.hiddenComponentIDs.contains(component.id)
+            }
+    }
+
+    /// Returns active incidents that still apply to the user's visible component configuration.
+    func visibleIncidents(using preferences: StatusComponentDisplayPreferences) -> [Incident] {
+        let visibleComponents = components.filter { !preferences.hiddenComponentIDs.contains($0.id) }
+        let hiddenComponents = components.filter { preferences.hiddenComponentIDs.contains($0.id) }
+
+        return incidents.filter { incident in
+            let matchesVisibleComponent = visibleComponents.contains { incident.references(component: $0) }
+            let matchesHiddenComponent = hiddenComponents.contains { incident.references(component: $0) }
+            return matchesVisibleComponent || !matchesHiddenComponent
         }
     }
 
@@ -318,6 +358,7 @@ struct StatusView: View {
                 } else {
                     let visibleComponentGroups = model.visibleComponentGroups(using: componentDisplayPreferences)
                     let visibleAffectedComponents = model.visibleAffectedComponents(using: componentDisplayPreferences)
+                    let visibleIncidents = model.visibleIncidents(using: componentDisplayPreferences)
                     let visibleComponentCount = visibleComponentGroups.reduce(0) { $0 + $1.allComponents.count }
 
                     ScrollView {
@@ -327,7 +368,7 @@ struct StatusView: View {
                                     summary: summary,
                                     componentCount: visibleComponentCount,
                                     affectedCount: visibleAffectedComponents.count,
-                                    incidentCount: model.incidents.count,
+                                    incidentCount: visibleIncidents.count,
                                     maintenanceCount: model.maintenances.count,
                                     lastRefreshed: model.lastRefreshed
                                 )
@@ -351,9 +392,9 @@ struct StatusView: View {
                                 }
                             }
 
-                            if !model.incidents.isEmpty {
-                                StatusSectionHeader(title: "Active Incidents", count: model.incidents.count)
-                                ForEach(model.incidents) { incident in
+                            if !visibleIncidents.isEmpty {
+                                StatusSectionHeader(title: "Active Incidents", count: visibleIncidents.count)
+                                ForEach(visibleIncidents) { incident in
                                     IncidentCard(incident: incident)
                                         .padding(.horizontal)
                                 }
